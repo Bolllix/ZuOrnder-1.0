@@ -1,0 +1,1798 @@
+{
+  "id" : "sample-project-01",
+  "name" : "Muster-Jugendherberge (Vollständig)",
+  "description" : "Test-Projekt mit 22 Teilnehmern (Max Mustermann & Co.), 3 Gebäuden und allen Harte/Weiche Regeln.",
+  "buildings" : [ {
+    "id" : "e4eef108-f472-4a40-a479-0faee5c51ace",
+    "name" : "Gebäude A (Senioren & Paare)",
+    "rooms" : [ {
+      "id" : "fee2c6ed-d319-4283-8b16-0e1d0ffcf6c6",
+      "name" : "Raum EG-01 (Senioren)",
+      "floor" : 0,
+      "buildingName" : "Gebäude A (Senioren & Paare)",
+      "girlsRoom" : false,
+      "boysRoom" : false,
+      "beds" : [ {
+        "id" : "69b1efab-074d-4e87-9f94-a0233819e347",
+        "name" : "Einzelbett EG-1",
+        "bedType" : "SINGLE",
+        "roomName" : "Raum EG-01 (Senioren)",
+        "floor" : 0,
+        "buildingName" : "Gebäude A (Senioren & Paare)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : false,
+        "bottomBunk" : false
+      }, {
+        "id" : "f307753d-710a-4924-b14f-22fc4c273967",
+        "name" : "Einzelbett EG-2",
+        "bedType" : "SINGLE",
+        "roomName" : "Raum EG-01 (Senioren)",
+        "floor" : 0,
+        "buildingName" : "Gebäude A (Senioren & Paare)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : false,
+        "bottomBunk" : false
+      }, {
+        "id" : "6c744318-7530-4a14-ba6a-84e738a7a2c7",
+        "name" : "Einzelbett EG-3",
+        "bedType" : "SINGLE",
+        "roomName" : "Raum EG-01 (Senioren)",
+        "floor" : 0,
+        "buildingName" : "Gebäude A (Senioren & Paare)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : false,
+        "bottomBunk" : false
+      }, {
+        "id" : "a5d5413b-1bec-4b63-9bdf-c4542b18151d",
+        "name" : "Einzelbett EG-4",
+        "bedType" : "SINGLE",
+        "roomName" : "Raum EG-01 (Senioren)",
+        "floor" : 0,
+        "buildingName" : "Gebäude A (Senioren & Paare)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : false,
+        "bottomBunk" : false
+      }, {
+        "id" : "f4eaeec0-1faf-4653-8f5b-6eed6e74ec3f",
+        "name" : "Bett 5",
+        "bedType" : "SINGLE",
+        "roomName" : "Raum EG-01 (Senioren)",
+        "floor" : 0,
+        "buildingName" : "Gebäude A (Senioren & Paare)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : false,
+        "bottomBunk" : false
+      } ],
+      "customAttributes" : { },
+      "capacity" : 5
+    }, {
+      "id" : "a1546f2b-955f-408e-9e49-6c19c2ddf49e",
+      "name" : "Raum 101 (Paarzimmer)",
+      "floor" : 1,
+      "buildingName" : "Gebäude A (Senioren & Paare)",
+      "girlsRoom" : false,
+      "boysRoom" : false,
+      "beds" : [ {
+        "id" : "3d540f2e-0471-4842-bb73-f3cbffacf807",
+        "name" : "Doppelbett 1 (A)",
+        "bedType" : "DOUBLE",
+        "roomName" : "Raum 101 (Paarzimmer)",
+        "floor" : 1,
+        "buildingName" : "Gebäude A (Senioren & Paare)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : false,
+        "bottomBunk" : false
+      }, {
+        "id" : "ebe9bb43-f500-42be-84fa-342eb63d66d7",
+        "name" : "Doppelbett 1 (B)",
+        "bedType" : "DOUBLE",
+        "roomName" : "Raum 101 (Paarzimmer)",
+        "floor" : 1,
+        "buildingName" : "Gebäude A (Senioren & Paare)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : false,
+        "bottomBunk" : false
+      }, {
+        "id" : "72b6c571-b0e2-41f7-8153-665d44800e98",
+        "name" : "Doppelbett 2 (A)",
+        "bedType" : "DOUBLE",
+        "roomName" : "Raum 101 (Paarzimmer)",
+        "floor" : 1,
+        "buildingName" : "Gebäude A (Senioren & Paare)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : false,
+        "bottomBunk" : false
+      }, {
+        "id" : "994c77ae-827f-4235-b964-f85ffd74dfef",
+        "name" : "Doppelbett 2 (B)",
+        "bedType" : "DOUBLE",
+        "roomName" : "Raum 101 (Paarzimmer)",
+        "floor" : 1,
+        "buildingName" : "Gebäude A (Senioren & Paare)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : false,
+        "bottomBunk" : false
+      } ],
+      "customAttributes" : { },
+      "capacity" : 4
+    } ],
+    "allBeds" : [ {
+      "id" : "69b1efab-074d-4e87-9f94-a0233819e347",
+      "name" : "Einzelbett EG-1",
+      "bedType" : "SINGLE",
+      "roomName" : "Raum EG-01 (Senioren)",
+      "floor" : 0,
+      "buildingName" : "Gebäude A (Senioren & Paare)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : false,
+      "bottomBunk" : false
+    }, {
+      "id" : "f307753d-710a-4924-b14f-22fc4c273967",
+      "name" : "Einzelbett EG-2",
+      "bedType" : "SINGLE",
+      "roomName" : "Raum EG-01 (Senioren)",
+      "floor" : 0,
+      "buildingName" : "Gebäude A (Senioren & Paare)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : false,
+      "bottomBunk" : false
+    }, {
+      "id" : "6c744318-7530-4a14-ba6a-84e738a7a2c7",
+      "name" : "Einzelbett EG-3",
+      "bedType" : "SINGLE",
+      "roomName" : "Raum EG-01 (Senioren)",
+      "floor" : 0,
+      "buildingName" : "Gebäude A (Senioren & Paare)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : false,
+      "bottomBunk" : false
+    }, {
+      "id" : "a5d5413b-1bec-4b63-9bdf-c4542b18151d",
+      "name" : "Einzelbett EG-4",
+      "bedType" : "SINGLE",
+      "roomName" : "Raum EG-01 (Senioren)",
+      "floor" : 0,
+      "buildingName" : "Gebäude A (Senioren & Paare)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : false,
+      "bottomBunk" : false
+    }, {
+      "id" : "f4eaeec0-1faf-4653-8f5b-6eed6e74ec3f",
+      "name" : "Bett 5",
+      "bedType" : "SINGLE",
+      "roomName" : "Raum EG-01 (Senioren)",
+      "floor" : 0,
+      "buildingName" : "Gebäude A (Senioren & Paare)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : false,
+      "bottomBunk" : false
+    }, {
+      "id" : "3d540f2e-0471-4842-bb73-f3cbffacf807",
+      "name" : "Doppelbett 1 (A)",
+      "bedType" : "DOUBLE",
+      "roomName" : "Raum 101 (Paarzimmer)",
+      "floor" : 1,
+      "buildingName" : "Gebäude A (Senioren & Paare)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : false,
+      "bottomBunk" : false
+    }, {
+      "id" : "ebe9bb43-f500-42be-84fa-342eb63d66d7",
+      "name" : "Doppelbett 1 (B)",
+      "bedType" : "DOUBLE",
+      "roomName" : "Raum 101 (Paarzimmer)",
+      "floor" : 1,
+      "buildingName" : "Gebäude A (Senioren & Paare)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : false,
+      "bottomBunk" : false
+    }, {
+      "id" : "72b6c571-b0e2-41f7-8153-665d44800e98",
+      "name" : "Doppelbett 2 (A)",
+      "bedType" : "DOUBLE",
+      "roomName" : "Raum 101 (Paarzimmer)",
+      "floor" : 1,
+      "buildingName" : "Gebäude A (Senioren & Paare)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : false,
+      "bottomBunk" : false
+    }, {
+      "id" : "994c77ae-827f-4235-b964-f85ffd74dfef",
+      "name" : "Doppelbett 2 (B)",
+      "bedType" : "DOUBLE",
+      "roomName" : "Raum 101 (Paarzimmer)",
+      "floor" : 1,
+      "buildingName" : "Gebäude A (Senioren & Paare)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : false,
+      "bottomBunk" : false
+    } ]
+  }, {
+    "id" : "6927e88d-8b88-4edf-8afe-b1657b7fece2",
+    "name" : "Gebäude B (Jugendtrakt)",
+    "rooms" : [ {
+      "id" : "448c0bb2-82f9-49eb-9709-a0c9b77c4b83",
+      "name" : "Jungenzimmer 201",
+      "floor" : 1,
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "girlsRoom" : false,
+      "boysRoom" : true,
+      "beds" : [ {
+        "id" : "c8753793-fcff-4802-9dc0-fa96310fdab5",
+        "name" : "Jungs Hochbett 1 (Unten)",
+        "bedType" : "BOTTOM_BUNK",
+        "roomName" : "Jungenzimmer 201",
+        "floor" : 1,
+        "buildingName" : "Gebäude B (Jugendtrakt)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : false,
+        "bottomBunk" : true
+      }, {
+        "id" : "8e5e2aff-bb3a-44f4-8293-fc5c8c2bd61c",
+        "name" : "Jungs Hochbett 1 (Oben)",
+        "bedType" : "TOP_BUNK",
+        "roomName" : "Jungenzimmer 201",
+        "floor" : 1,
+        "buildingName" : "Gebäude B (Jugendtrakt)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : true,
+        "bottomBunk" : false
+      }, {
+        "id" : "cdd6d8a0-ea14-4c1b-871b-f9a60ab2cf3a",
+        "name" : "Jungs Hochbett 2 (Unten)",
+        "bedType" : "BOTTOM_BUNK",
+        "roomName" : "Jungenzimmer 201",
+        "floor" : 1,
+        "buildingName" : "Gebäude B (Jugendtrakt)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : false,
+        "bottomBunk" : true
+      }, {
+        "id" : "774d5ebe-6669-4d32-aead-76a24cbc2ac2",
+        "name" : "Jungs Hochbett 2 (Oben)",
+        "bedType" : "TOP_BUNK",
+        "roomName" : "Jungenzimmer 201",
+        "floor" : 1,
+        "buildingName" : "Gebäude B (Jugendtrakt)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : true,
+        "bottomBunk" : false
+      }, {
+        "id" : "ee350c40-50cb-461d-a9c7-5675a91b8f7d",
+        "name" : "Jungs Hochbett 3 (Unten)",
+        "bedType" : "BOTTOM_BUNK",
+        "roomName" : "Jungenzimmer 201",
+        "floor" : 1,
+        "buildingName" : "Gebäude B (Jugendtrakt)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : false,
+        "bottomBunk" : true
+      }, {
+        "id" : "5e123c43-2f85-47ab-b1c0-0cdb0125279c",
+        "name" : "Jungs Hochbett 3 (Oben)",
+        "bedType" : "TOP_BUNK",
+        "roomName" : "Jungenzimmer 201",
+        "floor" : 1,
+        "buildingName" : "Gebäude B (Jugendtrakt)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : true,
+        "bottomBunk" : false
+      }, {
+        "id" : "081edd3b-52f8-4418-9fc9-dc3f05746b73",
+        "name" : "Jungs Hochbett 4 (Unten)",
+        "bedType" : "BOTTOM_BUNK",
+        "roomName" : "Jungenzimmer 201",
+        "floor" : 1,
+        "buildingName" : "Gebäude B (Jugendtrakt)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : false,
+        "bottomBunk" : true
+      }, {
+        "id" : "bafda89a-3e33-4f2b-8199-1df318068a7a",
+        "name" : "Jungs Hochbett 4 (Oben)",
+        "bedType" : "TOP_BUNK",
+        "roomName" : "Jungenzimmer 201",
+        "floor" : 1,
+        "buildingName" : "Gebäude B (Jugendtrakt)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : true,
+        "bottomBunk" : false
+      } ],
+      "customAttributes" : { },
+      "capacity" : 8
+    }, {
+      "id" : "c70c48e9-7e81-46b9-bf96-cfc08b0a7317",
+      "name" : "Mädchenzimmer 202",
+      "floor" : 1,
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "girlsRoom" : true,
+      "boysRoom" : false,
+      "beds" : [ {
+        "id" : "09066d22-5074-47de-96c5-ead91971505e",
+        "name" : "Mädels Hochbett 1 (Unten)",
+        "bedType" : "BOTTOM_BUNK",
+        "roomName" : "Mädchenzimmer 202",
+        "floor" : 1,
+        "buildingName" : "Gebäude B (Jugendtrakt)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : false,
+        "bottomBunk" : true
+      }, {
+        "id" : "1bfe9feb-b60d-4007-8bcd-2d54c64c5ca4",
+        "name" : "Mädels Hochbett 1 (Oben)",
+        "bedType" : "TOP_BUNK",
+        "roomName" : "Mädchenzimmer 202",
+        "floor" : 1,
+        "buildingName" : "Gebäude B (Jugendtrakt)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : true,
+        "bottomBunk" : false
+      }, {
+        "id" : "f72beb21-f538-428a-8305-2b7138cdc15a",
+        "name" : "Mädels Hochbett 2 (Unten)",
+        "bedType" : "BOTTOM_BUNK",
+        "roomName" : "Mädchenzimmer 202",
+        "floor" : 1,
+        "buildingName" : "Gebäude B (Jugendtrakt)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : false,
+        "bottomBunk" : true
+      }, {
+        "id" : "c818d0e8-7347-4dab-a363-fedc7f3832bf",
+        "name" : "Mädels Hochbett 2 (Oben)",
+        "bedType" : "TOP_BUNK",
+        "roomName" : "Mädchenzimmer 202",
+        "floor" : 1,
+        "buildingName" : "Gebäude B (Jugendtrakt)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : true,
+        "bottomBunk" : false
+      }, {
+        "id" : "8f541a58-14ca-478e-bf06-2d360a5e6e05",
+        "name" : "Mädels Hochbett 3 (Unten)",
+        "bedType" : "BOTTOM_BUNK",
+        "roomName" : "Mädchenzimmer 202",
+        "floor" : 1,
+        "buildingName" : "Gebäude B (Jugendtrakt)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : false,
+        "bottomBunk" : true
+      }, {
+        "id" : "65eac9dd-29ad-4842-b283-58bd5460c6bf",
+        "name" : "Mädels Hochbett 3 (Oben)",
+        "bedType" : "TOP_BUNK",
+        "roomName" : "Mädchenzimmer 202",
+        "floor" : 1,
+        "buildingName" : "Gebäude B (Jugendtrakt)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : true,
+        "bottomBunk" : false
+      }, {
+        "id" : "63bbd308-43ec-4883-b04b-f5718d074bcf",
+        "name" : "Mädels Hochbett 4 (Unten)",
+        "bedType" : "BOTTOM_BUNK",
+        "roomName" : "Mädchenzimmer 202",
+        "floor" : 1,
+        "buildingName" : "Gebäude B (Jugendtrakt)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : false,
+        "bottomBunk" : true
+      }, {
+        "id" : "3dc290b5-73dc-4df9-ab8c-75189f784182",
+        "name" : "Mädels Hochbett 4 (Oben)",
+        "bedType" : "TOP_BUNK",
+        "roomName" : "Mädchenzimmer 202",
+        "floor" : 1,
+        "buildingName" : "Gebäude B (Jugendtrakt)",
+        "occupantId" : null,
+        "customAttributes" : { },
+        "topBunk" : true,
+        "bottomBunk" : false
+      } ],
+      "customAttributes" : { },
+      "capacity" : 8
+    } ],
+    "allBeds" : [ {
+      "id" : "c8753793-fcff-4802-9dc0-fa96310fdab5",
+      "name" : "Jungs Hochbett 1 (Unten)",
+      "bedType" : "BOTTOM_BUNK",
+      "roomName" : "Jungenzimmer 201",
+      "floor" : 1,
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : false,
+      "bottomBunk" : true
+    }, {
+      "id" : "8e5e2aff-bb3a-44f4-8293-fc5c8c2bd61c",
+      "name" : "Jungs Hochbett 1 (Oben)",
+      "bedType" : "TOP_BUNK",
+      "roomName" : "Jungenzimmer 201",
+      "floor" : 1,
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : true,
+      "bottomBunk" : false
+    }, {
+      "id" : "cdd6d8a0-ea14-4c1b-871b-f9a60ab2cf3a",
+      "name" : "Jungs Hochbett 2 (Unten)",
+      "bedType" : "BOTTOM_BUNK",
+      "roomName" : "Jungenzimmer 201",
+      "floor" : 1,
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : false,
+      "bottomBunk" : true
+    }, {
+      "id" : "774d5ebe-6669-4d32-aead-76a24cbc2ac2",
+      "name" : "Jungs Hochbett 2 (Oben)",
+      "bedType" : "TOP_BUNK",
+      "roomName" : "Jungenzimmer 201",
+      "floor" : 1,
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : true,
+      "bottomBunk" : false
+    }, {
+      "id" : "ee350c40-50cb-461d-a9c7-5675a91b8f7d",
+      "name" : "Jungs Hochbett 3 (Unten)",
+      "bedType" : "BOTTOM_BUNK",
+      "roomName" : "Jungenzimmer 201",
+      "floor" : 1,
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : false,
+      "bottomBunk" : true
+    }, {
+      "id" : "5e123c43-2f85-47ab-b1c0-0cdb0125279c",
+      "name" : "Jungs Hochbett 3 (Oben)",
+      "bedType" : "TOP_BUNK",
+      "roomName" : "Jungenzimmer 201",
+      "floor" : 1,
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : true,
+      "bottomBunk" : false
+    }, {
+      "id" : "081edd3b-52f8-4418-9fc9-dc3f05746b73",
+      "name" : "Jungs Hochbett 4 (Unten)",
+      "bedType" : "BOTTOM_BUNK",
+      "roomName" : "Jungenzimmer 201",
+      "floor" : 1,
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : false,
+      "bottomBunk" : true
+    }, {
+      "id" : "bafda89a-3e33-4f2b-8199-1df318068a7a",
+      "name" : "Jungs Hochbett 4 (Oben)",
+      "bedType" : "TOP_BUNK",
+      "roomName" : "Jungenzimmer 201",
+      "floor" : 1,
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : true,
+      "bottomBunk" : false
+    }, {
+      "id" : "09066d22-5074-47de-96c5-ead91971505e",
+      "name" : "Mädels Hochbett 1 (Unten)",
+      "bedType" : "BOTTOM_BUNK",
+      "roomName" : "Mädchenzimmer 202",
+      "floor" : 1,
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : false,
+      "bottomBunk" : true
+    }, {
+      "id" : "1bfe9feb-b60d-4007-8bcd-2d54c64c5ca4",
+      "name" : "Mädels Hochbett 1 (Oben)",
+      "bedType" : "TOP_BUNK",
+      "roomName" : "Mädchenzimmer 202",
+      "floor" : 1,
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : true,
+      "bottomBunk" : false
+    }, {
+      "id" : "f72beb21-f538-428a-8305-2b7138cdc15a",
+      "name" : "Mädels Hochbett 2 (Unten)",
+      "bedType" : "BOTTOM_BUNK",
+      "roomName" : "Mädchenzimmer 202",
+      "floor" : 1,
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : false,
+      "bottomBunk" : true
+    }, {
+      "id" : "c818d0e8-7347-4dab-a363-fedc7f3832bf",
+      "name" : "Mädels Hochbett 2 (Oben)",
+      "bedType" : "TOP_BUNK",
+      "roomName" : "Mädchenzimmer 202",
+      "floor" : 1,
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : true,
+      "bottomBunk" : false
+    }, {
+      "id" : "8f541a58-14ca-478e-bf06-2d360a5e6e05",
+      "name" : "Mädels Hochbett 3 (Unten)",
+      "bedType" : "BOTTOM_BUNK",
+      "roomName" : "Mädchenzimmer 202",
+      "floor" : 1,
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : false,
+      "bottomBunk" : true
+    }, {
+      "id" : "65eac9dd-29ad-4842-b283-58bd5460c6bf",
+      "name" : "Mädels Hochbett 3 (Oben)",
+      "bedType" : "TOP_BUNK",
+      "roomName" : "Mädchenzimmer 202",
+      "floor" : 1,
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : true,
+      "bottomBunk" : false
+    }, {
+      "id" : "63bbd308-43ec-4883-b04b-f5718d074bcf",
+      "name" : "Mädels Hochbett 4 (Unten)",
+      "bedType" : "BOTTOM_BUNK",
+      "roomName" : "Mädchenzimmer 202",
+      "floor" : 1,
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : false,
+      "bottomBunk" : true
+    }, {
+      "id" : "3dc290b5-73dc-4df9-ab8c-75189f784182",
+      "name" : "Mädels Hochbett 4 (Oben)",
+      "bedType" : "TOP_BUNK",
+      "roomName" : "Mädchenzimmer 202",
+      "floor" : 1,
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "occupantId" : null,
+      "customAttributes" : { },
+      "topBunk" : true,
+      "bottomBunk" : false
+    } ]
+  } ],
+  "persons" : [ {
+    "id" : "df59ccac-d470-4b5c-b7f6-ace6ffdeceff",
+    "firstname" : "Max",
+    "lastname" : "Mustermann",
+    "gender" : "maennlich",
+    "age" : 72,
+    "partnerId" : "PAAR_MUSTERMANN",
+    "groupId" : null,
+    "desiredFloor" : null,
+    "desiredRoom" : null,
+    "specialNeeds" : null,
+    "customAttributes" : { },
+    "fullName" : "Max Mustermann"
+  }, {
+    "id" : "7049ab5b-ae0a-4f7a-bf06-8f0047f93954",
+    "firstname" : "Erika",
+    "lastname" : "Musterfrau",
+    "gender" : "weiblich",
+    "age" : 70,
+    "partnerId" : "PAAR_MUSTERMANN",
+    "groupId" : null,
+    "desiredFloor" : null,
+    "desiredRoom" : null,
+    "specialNeeds" : null,
+    "customAttributes" : { },
+    "fullName" : "Erika Musterfrau"
+  }, {
+    "id" : "54fccc4b-d470-4ab0-a6e5-7e72b3a0bbda",
+    "firstname" : "Felix",
+    "lastname" : "Mustermann",
+    "gender" : "maennlich",
+    "age" : 28,
+    "partnerId" : "PAAR_FELIX_LISA",
+    "groupId" : null,
+    "desiredFloor" : null,
+    "desiredRoom" : null,
+    "specialNeeds" : null,
+    "customAttributes" : { },
+    "fullName" : "Felix Mustermann"
+  }, {
+    "id" : "0f793ee0-9485-4fc1-a269-717f44c8edba",
+    "firstname" : "Lisa",
+    "lastname" : "Musterfrau",
+    "gender" : "weiblich",
+    "age" : 26,
+    "partnerId" : "PAAR_FELIX_LISA",
+    "groupId" : null,
+    "desiredFloor" : null,
+    "desiredRoom" : null,
+    "specialNeeds" : null,
+    "customAttributes" : { },
+    "fullName" : "Lisa Musterfrau"
+  }, {
+    "id" : "eedfce4e-4dc2-46a0-82b6-9f02a9dfc1ad",
+    "firstname" : "Otto",
+    "lastname" : "Mustermann",
+    "gender" : "maennlich",
+    "age" : 78,
+    "partnerId" : null,
+    "groupId" : "Senioren-Club",
+    "desiredFloor" : null,
+    "desiredRoom" : null,
+    "specialNeeds" : null,
+    "customAttributes" : { },
+    "fullName" : "Otto Mustermann"
+  }, {
+    "id" : "b1366014-9efd-4199-a87e-72b7fef0b671",
+    "firstname" : "Gerti",
+    "lastname" : "Musterfrau",
+    "gender" : "weiblich",
+    "age" : 75,
+    "partnerId" : null,
+    "groupId" : "Senioren-Club",
+    "desiredFloor" : null,
+    "desiredRoom" : null,
+    "specialNeeds" : null,
+    "customAttributes" : { },
+    "fullName" : "Gerti Musterfrau"
+  }, {
+    "id" : "b8491a9e-9741-4d81-addc-0cad40908f65",
+    "firstname" : "Junge 1",
+    "lastname" : "Mustermann",
+    "gender" : "maennlich",
+    "age" : 17,
+    "partnerId" : null,
+    "groupId" : "Jugendgruppe-Jungs",
+    "desiredFloor" : null,
+    "desiredRoom" : null,
+    "specialNeeds" : null,
+    "customAttributes" : { },
+    "fullName" : "Junge 1 Mustermann"
+  }, {
+    "id" : "cbda234a-7c4b-4248-9151-da6977acd56b",
+    "firstname" : "Junge 2",
+    "lastname" : "Mustermann",
+    "gender" : "maennlich",
+    "age" : 18,
+    "partnerId" : null,
+    "groupId" : "Jugendgruppe-Jungs",
+    "desiredFloor" : null,
+    "desiredRoom" : null,
+    "specialNeeds" : null,
+    "customAttributes" : { },
+    "fullName" : "Junge 2 Mustermann"
+  }, {
+    "id" : "5628dc68-d368-4bb7-b2ab-d6682311e24b",
+    "firstname" : "Junge 3",
+    "lastname" : "Mustermann",
+    "gender" : "maennlich",
+    "age" : 19,
+    "partnerId" : null,
+    "groupId" : "Jugendgruppe-Jungs",
+    "desiredFloor" : null,
+    "desiredRoom" : null,
+    "specialNeeds" : null,
+    "customAttributes" : { },
+    "fullName" : "Junge 3 Mustermann"
+  }, {
+    "id" : "deffd0d0-5c67-47b8-b840-afc5afb1398e",
+    "firstname" : "Junge 4",
+    "lastname" : "Mustermann",
+    "gender" : "maennlich",
+    "age" : 20,
+    "partnerId" : null,
+    "groupId" : "Jugendgruppe-Jungs",
+    "desiredFloor" : null,
+    "desiredRoom" : null,
+    "specialNeeds" : null,
+    "customAttributes" : { },
+    "fullName" : "Junge 4 Mustermann"
+  }, {
+    "id" : "d1037ce2-07f0-4762-b4ca-bb7866c49643",
+    "firstname" : "Junge 5",
+    "lastname" : "Mustermann",
+    "gender" : "maennlich",
+    "age" : 21,
+    "partnerId" : null,
+    "groupId" : "Jugendgruppe-Jungs",
+    "desiredFloor" : null,
+    "desiredRoom" : null,
+    "specialNeeds" : null,
+    "customAttributes" : { },
+    "fullName" : "Junge 5 Mustermann"
+  }, {
+    "id" : "98afb4c1-bd85-4adc-8eeb-8b8f772e575f",
+    "firstname" : "Junge 6",
+    "lastname" : "Mustermann",
+    "gender" : "maennlich",
+    "age" : 22,
+    "partnerId" : null,
+    "groupId" : "Jugendgruppe-Jungs",
+    "desiredFloor" : null,
+    "desiredRoom" : null,
+    "specialNeeds" : null,
+    "customAttributes" : { },
+    "fullName" : "Junge 6 Mustermann"
+  }, {
+    "id" : "a638e8b5-d856-4bae-95de-0cc2498ae0d0",
+    "firstname" : "Junge 7",
+    "lastname" : "Mustermann",
+    "gender" : "maennlich",
+    "age" : 23,
+    "partnerId" : null,
+    "groupId" : "Jugendgruppe-Jungs",
+    "desiredFloor" : null,
+    "desiredRoom" : null,
+    "specialNeeds" : null,
+    "customAttributes" : { },
+    "fullName" : "Junge 7 Mustermann"
+  }, {
+    "id" : "3b323dd4-63d3-4671-96b0-a2f77e9a0d2c",
+    "firstname" : "Junge 8",
+    "lastname" : "Mustermann",
+    "gender" : "maennlich",
+    "age" : 24,
+    "partnerId" : null,
+    "groupId" : "Jugendgruppe-Jungs",
+    "desiredFloor" : null,
+    "desiredRoom" : null,
+    "specialNeeds" : null,
+    "customAttributes" : { },
+    "fullName" : "Junge 8 Mustermann"
+  }, {
+    "id" : "180e00b5-b36b-475f-8be0-9a23b808a418",
+    "firstname" : "Mädchen 1",
+    "lastname" : "Musterfrau",
+    "gender" : "weiblich",
+    "age" : 16,
+    "partnerId" : null,
+    "groupId" : "Jugendgruppe-Mädels",
+    "desiredFloor" : null,
+    "desiredRoom" : null,
+    "specialNeeds" : null,
+    "customAttributes" : { },
+    "fullName" : "Mädchen 1 Musterfrau"
+  }, {
+    "id" : "5ae7dc07-4457-4587-a278-37113afdc758",
+    "firstname" : "Mädchen 2",
+    "lastname" : "Musterfrau",
+    "gender" : "weiblich",
+    "age" : 17,
+    "partnerId" : null,
+    "groupId" : "Jugendgruppe-Mädels",
+    "desiredFloor" : null,
+    "desiredRoom" : null,
+    "specialNeeds" : null,
+    "customAttributes" : { },
+    "fullName" : "Mädchen 2 Musterfrau"
+  }, {
+    "id" : "95eac9ac-d35b-4e07-8d9d-020e68a0853c",
+    "firstname" : "Mädchen 3",
+    "lastname" : "Musterfrau",
+    "gender" : "weiblich",
+    "age" : 18,
+    "partnerId" : null,
+    "groupId" : "Jugendgruppe-Mädels",
+    "desiredFloor" : null,
+    "desiredRoom" : null,
+    "specialNeeds" : null,
+    "customAttributes" : { },
+    "fullName" : "Mädchen 3 Musterfrau"
+  }, {
+    "id" : "d5909777-a93a-4ac2-91a9-4b088a9bcb94",
+    "firstname" : "Mädchen 4",
+    "lastname" : "Musterfrau",
+    "gender" : "weiblich",
+    "age" : 19,
+    "partnerId" : null,
+    "groupId" : "Jugendgruppe-Mädels",
+    "desiredFloor" : null,
+    "desiredRoom" : null,
+    "specialNeeds" : null,
+    "customAttributes" : { },
+    "fullName" : "Mädchen 4 Musterfrau"
+  }, {
+    "id" : "ba31b54a-cb30-4b00-8c13-7e30cf447bf3",
+    "firstname" : "Mädchen 5",
+    "lastname" : "Musterfrau",
+    "gender" : "weiblich",
+    "age" : 20,
+    "partnerId" : null,
+    "groupId" : "Jugendgruppe-Mädels",
+    "desiredFloor" : null,
+    "desiredRoom" : null,
+    "specialNeeds" : null,
+    "customAttributes" : { },
+    "fullName" : "Mädchen 5 Musterfrau"
+  }, {
+    "id" : "f756dfcb-1648-40f1-b6af-92edbb608142",
+    "firstname" : "Mädchen 6",
+    "lastname" : "Musterfrau",
+    "gender" : "weiblich",
+    "age" : 21,
+    "partnerId" : null,
+    "groupId" : "Jugendgruppe-Mädels",
+    "desiredFloor" : null,
+    "desiredRoom" : null,
+    "specialNeeds" : null,
+    "customAttributes" : { },
+    "fullName" : "Mädchen 6 Musterfrau"
+  }, {
+    "id" : "1759890a-99f9-4515-83d4-6d3466413920",
+    "firstname" : "Mädchen 7",
+    "lastname" : "Musterfrau",
+    "gender" : "weiblich",
+    "age" : 22,
+    "partnerId" : null,
+    "groupId" : "Jugendgruppe-Mädels",
+    "desiredFloor" : null,
+    "desiredRoom" : null,
+    "specialNeeds" : null,
+    "customAttributes" : { },
+    "fullName" : "Mädchen 7 Musterfrau"
+  }, {
+    "id" : "1e1cd3a4-66d5-4534-91a9-85f7cf777e43",
+    "firstname" : "Mädchen 8",
+    "lastname" : "Musterfrau",
+    "gender" : "weiblich",
+    "age" : 23,
+    "partnerId" : null,
+    "groupId" : "Jugendgruppe-Mädels",
+    "desiredFloor" : null,
+    "desiredRoom" : null,
+    "specialNeeds" : null,
+    "customAttributes" : { },
+    "fullName" : "Mädchen 8 Musterfrau"
+  } ],
+  "rules" : [ {
+    "id" : "0cad8d21-b6f2-41c0-a7f9-0cf7efdd4b40",
+    "name" : "Harte Geschlechtertrennung (Mädchenzimmer)",
+    "description" : "Männliche Teilnehmer dürfen unter keinen Umständen im Mädchenzimmer untergebracht werden.",
+    "active" : true,
+    "ruleType" : "HARD",
+    "targetScope" : "ROOM_PERSON",
+    "conditions" : [ {
+      "field" : "person.gender",
+      "operator" : "EQUALS",
+      "value" : "maennlich"
+    }, {
+      "field" : "room.girlsRoom",
+      "operator" : "EQUALS",
+      "value" : true
+    } ],
+    "action" : "FORBID",
+    "weight" : -999999
+  }, {
+    "id" : "ecaf0c1f-74ad-4ac0-a03c-ab0533f8e872",
+    "name" : "Harte Geschlechtertrennung (Jungenzimmer)",
+    "description" : "Weibliche Teilnehmer dürfen unter keinen Umständen im Jungenzimmer untergebracht werden.",
+    "active" : true,
+    "ruleType" : "HARD",
+    "targetScope" : "ROOM_PERSON",
+    "conditions" : [ {
+      "field" : "person.gender",
+      "operator" : "EQUALS",
+      "value" : "weiblich"
+    }, {
+      "field" : "room.boysRoom",
+      "operator" : "EQUALS",
+      "value" : true
+    } ],
+    "action" : "FORBID",
+    "weight" : -999999
+  }, {
+    "id" : "fabbd13f-6c57-4e96-b4f3-a94b718c0365",
+    "name" : "Senioren nicht im oberen Hochbett",
+    "description" : "Personen ab 65 Jahren dürfen aus Sicherheitsgründen nicht im oberen Hochbett schlafen.",
+    "active" : true,
+    "ruleType" : "HARD",
+    "targetScope" : "BED_PERSON",
+    "conditions" : [ {
+      "field" : "person.age",
+      "operator" : "GREATER_THAN",
+      "value" : 65
+    }, {
+      "field" : "bed.isTopBunk",
+      "operator" : "EQUALS",
+      "value" : true
+    } ],
+    "action" : "FORBID",
+    "weight" : -999999
+  }, {
+    "id" : "8d437137-4436-4770-88e2-4c9d4aa3fd31",
+    "name" : "Paare im selben Zimmer",
+    "description" : "Personen mit der gleichen Paar-ID sollen bevorzugt im selben Zimmer untergebracht werden (+50 Punkte).",
+    "active" : true,
+    "ruleType" : "SOFT",
+    "targetScope" : "PAIR_CO_LOCATION",
+    "conditions" : [ ],
+    "action" : "ADD_POINTS",
+    "weight" : 50
+  }, {
+    "id" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+    "name" : "Gruppenzusammenhalt im Zimmer",
+    "description" : "Personen der gleichen Gruppe sollen bevorzugt im selben Zimmer untergebracht werden (+20 Punkte).",
+    "active" : true,
+    "ruleType" : "SOFT",
+    "targetScope" : "GROUP_CO_LOCATION",
+    "conditions" : [ ],
+    "action" : "ADD_POINTS",
+    "weight" : 20
+  } ],
+  "assignmentResult" : {
+    "assignments" : [ {
+      "personId" : "df59ccac-d470-4b5c-b7f6-ace6ffdeceff",
+      "bedId" : "081edd3b-52f8-4418-9fc9-dc3f05746b73",
+      "personName" : "Max Mustermann",
+      "bedName" : "Jungs Hochbett 4 (Unten)",
+      "roomName" : "Jungenzimmer 201",
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "score" : 0,
+      "explanations" : [ ],
+      "manualOverride" : false
+    }, {
+      "personId" : "7049ab5b-ae0a-4f7a-bf06-8f0047f93954",
+      "bedId" : "f307753d-710a-4924-b14f-22fc4c273967",
+      "personName" : "Erika Musterfrau",
+      "bedName" : "Einzelbett EG-2",
+      "roomName" : "Raum EG-01 (Senioren)",
+      "buildingName" : "Gebäude A (Senioren & Paare)",
+      "score" : 0,
+      "explanations" : [ ],
+      "manualOverride" : false
+    }, {
+      "personId" : "54fccc4b-d470-4ab0-a6e5-7e72b3a0bbda",
+      "bedId" : "5e123c43-2f85-47ab-b1c0-0cdb0125279c",
+      "personName" : "Felix Mustermann",
+      "bedName" : "Jungs Hochbett 3 (Oben)",
+      "roomName" : "Jungenzimmer 201",
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "score" : 0,
+      "explanations" : [ ],
+      "manualOverride" : false
+    }, {
+      "personId" : "0f793ee0-9485-4fc1-a269-717f44c8edba",
+      "bedId" : "a5d5413b-1bec-4b63-9bdf-c4542b18151d",
+      "personName" : "Lisa Musterfrau",
+      "bedName" : "Einzelbett EG-4",
+      "roomName" : "Raum EG-01 (Senioren)",
+      "buildingName" : "Gebäude A (Senioren & Paare)",
+      "score" : 0,
+      "explanations" : [ ],
+      "manualOverride" : false
+    }, {
+      "personId" : "eedfce4e-4dc2-46a0-82b6-9f02a9dfc1ad",
+      "bedId" : "f4eaeec0-1faf-4653-8f5b-6eed6e74ec3f",
+      "personName" : "Otto Mustermann",
+      "bedName" : "Bett 5",
+      "roomName" : "Raum EG-01 (Senioren)",
+      "buildingName" : "Gebäude A (Senioren & Paare)",
+      "score" : 0,
+      "explanations" : [ ],
+      "manualOverride" : false
+    }, {
+      "personId" : "b1366014-9efd-4199-a87e-72b7fef0b671",
+      "bedId" : "3d540f2e-0471-4842-bb73-f3cbffacf807",
+      "personName" : "Gerti Musterfrau",
+      "bedName" : "Doppelbett 1 (A)",
+      "roomName" : "Raum 101 (Paarzimmer)",
+      "buildingName" : "Gebäude A (Senioren & Paare)",
+      "score" : 0,
+      "explanations" : [ ],
+      "manualOverride" : false
+    }, {
+      "personId" : "b8491a9e-9741-4d81-addc-0cad40908f65",
+      "bedId" : "bafda89a-3e33-4f2b-8199-1df318068a7a",
+      "personName" : "Junge 1 Mustermann",
+      "bedName" : "Jungs Hochbett 4 (Oben)",
+      "roomName" : "Jungenzimmer 201",
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "score" : 100,
+      "explanations" : [ {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 4 Mustermann (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 5 Mustermann (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 6 Mustermann (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 7 Mustermann (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 8 Mustermann (+ 20 Pkt)"
+      } ],
+      "manualOverride" : false
+    }, {
+      "personId" : "cbda234a-7c4b-4248-9151-da6977acd56b",
+      "bedId" : "72b6c571-b0e2-41f7-8153-665d44800e98",
+      "personName" : "Junge 2 Mustermann",
+      "bedName" : "Doppelbett 2 (A)",
+      "roomName" : "Raum 101 (Paarzimmer)",
+      "buildingName" : "Gebäude A (Senioren & Paare)",
+      "score" : 20,
+      "explanations" : [ {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 3 Mustermann (+ 20 Pkt)"
+      } ],
+      "manualOverride" : false
+    }, {
+      "personId" : "5628dc68-d368-4bb7-b2ab-d6682311e24b",
+      "bedId" : "994c77ae-827f-4235-b964-f85ffd74dfef",
+      "personName" : "Junge 3 Mustermann",
+      "bedName" : "Doppelbett 2 (B)",
+      "roomName" : "Raum 101 (Paarzimmer)",
+      "buildingName" : "Gebäude A (Senioren & Paare)",
+      "score" : 20,
+      "explanations" : [ {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 2 Mustermann (+ 20 Pkt)"
+      } ],
+      "manualOverride" : false
+    }, {
+      "personId" : "deffd0d0-5c67-47b8-b840-afc5afb1398e",
+      "bedId" : "c8753793-fcff-4802-9dc0-fa96310fdab5",
+      "personName" : "Junge 4 Mustermann",
+      "bedName" : "Jungs Hochbett 1 (Unten)",
+      "roomName" : "Jungenzimmer 201",
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "score" : 100,
+      "explanations" : [ {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 1 Mustermann (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 5 Mustermann (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 6 Mustermann (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 7 Mustermann (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 8 Mustermann (+ 20 Pkt)"
+      } ],
+      "manualOverride" : false
+    }, {
+      "personId" : "d1037ce2-07f0-4762-b4ca-bb7866c49643",
+      "bedId" : "8e5e2aff-bb3a-44f4-8293-fc5c8c2bd61c",
+      "personName" : "Junge 5 Mustermann",
+      "bedName" : "Jungs Hochbett 1 (Oben)",
+      "roomName" : "Jungenzimmer 201",
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "score" : 100,
+      "explanations" : [ {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 1 Mustermann (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 4 Mustermann (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 6 Mustermann (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 7 Mustermann (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 8 Mustermann (+ 20 Pkt)"
+      } ],
+      "manualOverride" : false
+    }, {
+      "personId" : "98afb4c1-bd85-4adc-8eeb-8b8f772e575f",
+      "bedId" : "cdd6d8a0-ea14-4c1b-871b-f9a60ab2cf3a",
+      "personName" : "Junge 6 Mustermann",
+      "bedName" : "Jungs Hochbett 2 (Unten)",
+      "roomName" : "Jungenzimmer 201",
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "score" : 100,
+      "explanations" : [ {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 1 Mustermann (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 4 Mustermann (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 5 Mustermann (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 7 Mustermann (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 8 Mustermann (+ 20 Pkt)"
+      } ],
+      "manualOverride" : false
+    }, {
+      "personId" : "a638e8b5-d856-4bae-95de-0cc2498ae0d0",
+      "bedId" : "774d5ebe-6669-4d32-aead-76a24cbc2ac2",
+      "personName" : "Junge 7 Mustermann",
+      "bedName" : "Jungs Hochbett 2 (Oben)",
+      "roomName" : "Jungenzimmer 201",
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "score" : 100,
+      "explanations" : [ {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 1 Mustermann (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 4 Mustermann (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 5 Mustermann (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 6 Mustermann (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 8 Mustermann (+ 20 Pkt)"
+      } ],
+      "manualOverride" : false
+    }, {
+      "personId" : "3b323dd4-63d3-4671-96b0-a2f77e9a0d2c",
+      "bedId" : "ee350c40-50cb-461d-a9c7-5675a91b8f7d",
+      "personName" : "Junge 8 Mustermann",
+      "bedName" : "Jungs Hochbett 3 (Unten)",
+      "roomName" : "Jungenzimmer 201",
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "score" : 100,
+      "explanations" : [ {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 1 Mustermann (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 4 Mustermann (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 5 Mustermann (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 6 Mustermann (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Junge 7 Mustermann (+ 20 Pkt)"
+      } ],
+      "manualOverride" : false
+    }, {
+      "personId" : "180e00b5-b36b-475f-8be0-9a23b808a418",
+      "bedId" : "6c744318-7530-4a14-ba6a-84e738a7a2c7",
+      "personName" : "Mädchen 1 Musterfrau",
+      "bedName" : "Einzelbett EG-3",
+      "roomName" : "Raum EG-01 (Senioren)",
+      "buildingName" : "Gebäude A (Senioren & Paare)",
+      "score" : 20,
+      "explanations" : [ {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Mädchen 2 Musterfrau (+ 20 Pkt)"
+      } ],
+      "manualOverride" : false
+    }, {
+      "personId" : "5ae7dc07-4457-4587-a278-37113afdc758",
+      "bedId" : "69b1efab-074d-4e87-9f94-a0233819e347",
+      "personName" : "Mädchen 2 Musterfrau",
+      "bedName" : "Einzelbett EG-1",
+      "roomName" : "Raum EG-01 (Senioren)",
+      "buildingName" : "Gebäude A (Senioren & Paare)",
+      "score" : 20,
+      "explanations" : [ {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Mädchen 1 Musterfrau (+ 20 Pkt)"
+      } ],
+      "manualOverride" : false
+    }, {
+      "personId" : "95eac9ac-d35b-4e07-8d9d-020e68a0853c",
+      "bedId" : "ebe9bb43-f500-42be-84fa-342eb63d66d7",
+      "personName" : "Mädchen 3 Musterfrau",
+      "bedName" : "Doppelbett 1 (B)",
+      "roomName" : "Raum 101 (Paarzimmer)",
+      "buildingName" : "Gebäude A (Senioren & Paare)",
+      "score" : 0,
+      "explanations" : [ ],
+      "manualOverride" : false
+    }, {
+      "personId" : "d5909777-a93a-4ac2-91a9-4b088a9bcb94",
+      "bedId" : "09066d22-5074-47de-96c5-ead91971505e",
+      "personName" : "Mädchen 4 Musterfrau",
+      "bedName" : "Mädels Hochbett 1 (Unten)",
+      "roomName" : "Mädchenzimmer 202",
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "score" : 80,
+      "explanations" : [ {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Mädchen 5 Musterfrau (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Mädchen 6 Musterfrau (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Mädchen 7 Musterfrau (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Mädchen 8 Musterfrau (+ 20 Pkt)"
+      } ],
+      "manualOverride" : false
+    }, {
+      "personId" : "ba31b54a-cb30-4b00-8c13-7e30cf447bf3",
+      "bedId" : "1bfe9feb-b60d-4007-8bcd-2d54c64c5ca4",
+      "personName" : "Mädchen 5 Musterfrau",
+      "bedName" : "Mädels Hochbett 1 (Oben)",
+      "roomName" : "Mädchenzimmer 202",
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "score" : 80,
+      "explanations" : [ {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Mädchen 4 Musterfrau (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Mädchen 6 Musterfrau (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Mädchen 7 Musterfrau (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Mädchen 8 Musterfrau (+ 20 Pkt)"
+      } ],
+      "manualOverride" : false
+    }, {
+      "personId" : "f756dfcb-1648-40f1-b6af-92edbb608142",
+      "bedId" : "f72beb21-f538-428a-8305-2b7138cdc15a",
+      "personName" : "Mädchen 6 Musterfrau",
+      "bedName" : "Mädels Hochbett 2 (Unten)",
+      "roomName" : "Mädchenzimmer 202",
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "score" : 80,
+      "explanations" : [ {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Mädchen 4 Musterfrau (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Mädchen 5 Musterfrau (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Mädchen 7 Musterfrau (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Mädchen 8 Musterfrau (+ 20 Pkt)"
+      } ],
+      "manualOverride" : false
+    }, {
+      "personId" : "1759890a-99f9-4515-83d4-6d3466413920",
+      "bedId" : "c818d0e8-7347-4dab-a363-fedc7f3832bf",
+      "personName" : "Mädchen 7 Musterfrau",
+      "bedName" : "Mädels Hochbett 2 (Oben)",
+      "roomName" : "Mädchenzimmer 202",
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "score" : 80,
+      "explanations" : [ {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Mädchen 4 Musterfrau (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Mädchen 5 Musterfrau (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Mädchen 6 Musterfrau (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Mädchen 8 Musterfrau (+ 20 Pkt)"
+      } ],
+      "manualOverride" : false
+    }, {
+      "personId" : "1e1cd3a4-66d5-4534-91a9-85f7cf777e43",
+      "bedId" : "8f541a58-14ca-478e-bf06-2d360a5e6e05",
+      "personName" : "Mädchen 8 Musterfrau",
+      "bedName" : "Mädels Hochbett 3 (Unten)",
+      "roomName" : "Mädchenzimmer 202",
+      "buildingName" : "Gebäude B (Jugendtrakt)",
+      "score" : 80,
+      "explanations" : [ {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Mädchen 4 Musterfrau (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Mädchen 5 Musterfrau (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Mädchen 6 Musterfrau (+ 20 Pkt)"
+      }, {
+        "ruleId" : "aa4651a8-a5c3-49aa-8761-07febd3b7a69",
+        "ruleName" : "Gruppenzusammenhalt im Zimmer",
+        "points" : 20,
+        "ruleType" : "SOFT",
+        "reason" : "Zusammenunterbringung erfüllt mit Mädchen 7 Musterfrau (+ 20 Pkt)"
+      } ],
+      "manualOverride" : false
+    } ],
+    "unassignedPersonIds" : [ ],
+    "unassignedBedIds" : [ "65eac9dd-29ad-4842-b283-58bd5460c6bf", "63bbd308-43ec-4883-b04b-f5718d074bcf", "3dc290b5-73dc-4df9-ab8c-75189f784182" ],
+    "totalScore" : 1080,
+    "hardRuleViolationsCount" : 0,
+    "executionTimeMs" : 2
+  },
+  "createdAt" : "2026-08-09T10:48:44.551980100",
+  "updatedAt" : "2026-08-09T10:48:44.551980100",
+  "allBeds" : [ {
+    "id" : "69b1efab-074d-4e87-9f94-a0233819e347",
+    "name" : "Einzelbett EG-1",
+    "bedType" : "SINGLE",
+    "roomName" : "Raum EG-01 (Senioren)",
+    "floor" : 0,
+    "buildingName" : "Gebäude A (Senioren & Paare)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : false,
+    "bottomBunk" : false
+  }, {
+    "id" : "f307753d-710a-4924-b14f-22fc4c273967",
+    "name" : "Einzelbett EG-2",
+    "bedType" : "SINGLE",
+    "roomName" : "Raum EG-01 (Senioren)",
+    "floor" : 0,
+    "buildingName" : "Gebäude A (Senioren & Paare)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : false,
+    "bottomBunk" : false
+  }, {
+    "id" : "6c744318-7530-4a14-ba6a-84e738a7a2c7",
+    "name" : "Einzelbett EG-3",
+    "bedType" : "SINGLE",
+    "roomName" : "Raum EG-01 (Senioren)",
+    "floor" : 0,
+    "buildingName" : "Gebäude A (Senioren & Paare)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : false,
+    "bottomBunk" : false
+  }, {
+    "id" : "a5d5413b-1bec-4b63-9bdf-c4542b18151d",
+    "name" : "Einzelbett EG-4",
+    "bedType" : "SINGLE",
+    "roomName" : "Raum EG-01 (Senioren)",
+    "floor" : 0,
+    "buildingName" : "Gebäude A (Senioren & Paare)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : false,
+    "bottomBunk" : false
+  }, {
+    "id" : "f4eaeec0-1faf-4653-8f5b-6eed6e74ec3f",
+    "name" : "Bett 5",
+    "bedType" : "SINGLE",
+    "roomName" : "Raum EG-01 (Senioren)",
+    "floor" : 0,
+    "buildingName" : "Gebäude A (Senioren & Paare)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : false,
+    "bottomBunk" : false
+  }, {
+    "id" : "3d540f2e-0471-4842-bb73-f3cbffacf807",
+    "name" : "Doppelbett 1 (A)",
+    "bedType" : "DOUBLE",
+    "roomName" : "Raum 101 (Paarzimmer)",
+    "floor" : 1,
+    "buildingName" : "Gebäude A (Senioren & Paare)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : false,
+    "bottomBunk" : false
+  }, {
+    "id" : "ebe9bb43-f500-42be-84fa-342eb63d66d7",
+    "name" : "Doppelbett 1 (B)",
+    "bedType" : "DOUBLE",
+    "roomName" : "Raum 101 (Paarzimmer)",
+    "floor" : 1,
+    "buildingName" : "Gebäude A (Senioren & Paare)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : false,
+    "bottomBunk" : false
+  }, {
+    "id" : "72b6c571-b0e2-41f7-8153-665d44800e98",
+    "name" : "Doppelbett 2 (A)",
+    "bedType" : "DOUBLE",
+    "roomName" : "Raum 101 (Paarzimmer)",
+    "floor" : 1,
+    "buildingName" : "Gebäude A (Senioren & Paare)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : false,
+    "bottomBunk" : false
+  }, {
+    "id" : "994c77ae-827f-4235-b964-f85ffd74dfef",
+    "name" : "Doppelbett 2 (B)",
+    "bedType" : "DOUBLE",
+    "roomName" : "Raum 101 (Paarzimmer)",
+    "floor" : 1,
+    "buildingName" : "Gebäude A (Senioren & Paare)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : false,
+    "bottomBunk" : false
+  }, {
+    "id" : "c8753793-fcff-4802-9dc0-fa96310fdab5",
+    "name" : "Jungs Hochbett 1 (Unten)",
+    "bedType" : "BOTTOM_BUNK",
+    "roomName" : "Jungenzimmer 201",
+    "floor" : 1,
+    "buildingName" : "Gebäude B (Jugendtrakt)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : false,
+    "bottomBunk" : true
+  }, {
+    "id" : "8e5e2aff-bb3a-44f4-8293-fc5c8c2bd61c",
+    "name" : "Jungs Hochbett 1 (Oben)",
+    "bedType" : "TOP_BUNK",
+    "roomName" : "Jungenzimmer 201",
+    "floor" : 1,
+    "buildingName" : "Gebäude B (Jugendtrakt)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : true,
+    "bottomBunk" : false
+  }, {
+    "id" : "cdd6d8a0-ea14-4c1b-871b-f9a60ab2cf3a",
+    "name" : "Jungs Hochbett 2 (Unten)",
+    "bedType" : "BOTTOM_BUNK",
+    "roomName" : "Jungenzimmer 201",
+    "floor" : 1,
+    "buildingName" : "Gebäude B (Jugendtrakt)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : false,
+    "bottomBunk" : true
+  }, {
+    "id" : "774d5ebe-6669-4d32-aead-76a24cbc2ac2",
+    "name" : "Jungs Hochbett 2 (Oben)",
+    "bedType" : "TOP_BUNK",
+    "roomName" : "Jungenzimmer 201",
+    "floor" : 1,
+    "buildingName" : "Gebäude B (Jugendtrakt)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : true,
+    "bottomBunk" : false
+  }, {
+    "id" : "ee350c40-50cb-461d-a9c7-5675a91b8f7d",
+    "name" : "Jungs Hochbett 3 (Unten)",
+    "bedType" : "BOTTOM_BUNK",
+    "roomName" : "Jungenzimmer 201",
+    "floor" : 1,
+    "buildingName" : "Gebäude B (Jugendtrakt)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : false,
+    "bottomBunk" : true
+  }, {
+    "id" : "5e123c43-2f85-47ab-b1c0-0cdb0125279c",
+    "name" : "Jungs Hochbett 3 (Oben)",
+    "bedType" : "TOP_BUNK",
+    "roomName" : "Jungenzimmer 201",
+    "floor" : 1,
+    "buildingName" : "Gebäude B (Jugendtrakt)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : true,
+    "bottomBunk" : false
+  }, {
+    "id" : "081edd3b-52f8-4418-9fc9-dc3f05746b73",
+    "name" : "Jungs Hochbett 4 (Unten)",
+    "bedType" : "BOTTOM_BUNK",
+    "roomName" : "Jungenzimmer 201",
+    "floor" : 1,
+    "buildingName" : "Gebäude B (Jugendtrakt)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : false,
+    "bottomBunk" : true
+  }, {
+    "id" : "bafda89a-3e33-4f2b-8199-1df318068a7a",
+    "name" : "Jungs Hochbett 4 (Oben)",
+    "bedType" : "TOP_BUNK",
+    "roomName" : "Jungenzimmer 201",
+    "floor" : 1,
+    "buildingName" : "Gebäude B (Jugendtrakt)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : true,
+    "bottomBunk" : false
+  }, {
+    "id" : "09066d22-5074-47de-96c5-ead91971505e",
+    "name" : "Mädels Hochbett 1 (Unten)",
+    "bedType" : "BOTTOM_BUNK",
+    "roomName" : "Mädchenzimmer 202",
+    "floor" : 1,
+    "buildingName" : "Gebäude B (Jugendtrakt)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : false,
+    "bottomBunk" : true
+  }, {
+    "id" : "1bfe9feb-b60d-4007-8bcd-2d54c64c5ca4",
+    "name" : "Mädels Hochbett 1 (Oben)",
+    "bedType" : "TOP_BUNK",
+    "roomName" : "Mädchenzimmer 202",
+    "floor" : 1,
+    "buildingName" : "Gebäude B (Jugendtrakt)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : true,
+    "bottomBunk" : false
+  }, {
+    "id" : "f72beb21-f538-428a-8305-2b7138cdc15a",
+    "name" : "Mädels Hochbett 2 (Unten)",
+    "bedType" : "BOTTOM_BUNK",
+    "roomName" : "Mädchenzimmer 202",
+    "floor" : 1,
+    "buildingName" : "Gebäude B (Jugendtrakt)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : false,
+    "bottomBunk" : true
+  }, {
+    "id" : "c818d0e8-7347-4dab-a363-fedc7f3832bf",
+    "name" : "Mädels Hochbett 2 (Oben)",
+    "bedType" : "TOP_BUNK",
+    "roomName" : "Mädchenzimmer 202",
+    "floor" : 1,
+    "buildingName" : "Gebäude B (Jugendtrakt)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : true,
+    "bottomBunk" : false
+  }, {
+    "id" : "8f541a58-14ca-478e-bf06-2d360a5e6e05",
+    "name" : "Mädels Hochbett 3 (Unten)",
+    "bedType" : "BOTTOM_BUNK",
+    "roomName" : "Mädchenzimmer 202",
+    "floor" : 1,
+    "buildingName" : "Gebäude B (Jugendtrakt)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : false,
+    "bottomBunk" : true
+  }, {
+    "id" : "65eac9dd-29ad-4842-b283-58bd5460c6bf",
+    "name" : "Mädels Hochbett 3 (Oben)",
+    "bedType" : "TOP_BUNK",
+    "roomName" : "Mädchenzimmer 202",
+    "floor" : 1,
+    "buildingName" : "Gebäude B (Jugendtrakt)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : true,
+    "bottomBunk" : false
+  }, {
+    "id" : "63bbd308-43ec-4883-b04b-f5718d074bcf",
+    "name" : "Mädels Hochbett 4 (Unten)",
+    "bedType" : "BOTTOM_BUNK",
+    "roomName" : "Mädchenzimmer 202",
+    "floor" : 1,
+    "buildingName" : "Gebäude B (Jugendtrakt)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : false,
+    "bottomBunk" : true
+  }, {
+    "id" : "3dc290b5-73dc-4df9-ab8c-75189f784182",
+    "name" : "Mädels Hochbett 4 (Oben)",
+    "bedType" : "TOP_BUNK",
+    "roomName" : "Mädchenzimmer 202",
+    "floor" : 1,
+    "buildingName" : "Gebäude B (Jugendtrakt)",
+    "occupantId" : null,
+    "customAttributes" : { },
+    "topBunk" : true,
+    "bottomBunk" : false
+  } ]
+}
