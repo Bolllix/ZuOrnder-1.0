@@ -43,13 +43,10 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
   const handleDeleteBuilding = async (buildingId: string, name: string) => {
     if (!confirm(`Möchten Sie das Gebäude '${name}' wirklich löschen?`)) return;
     try {
-      const res = await fetch(`http://localhost:8080/api/projects/${project.id}/buildings/${buildingId}`, { method: 'DELETE' });
-      if (res.ok) {
-        const updatedProject = await res.json();
-        onProjectUpdate(updatedProject);
-        if (selectedBuildingId === buildingId) {
-          setSelectedBuildingId(updatedProject.buildings.length > 0 ? updatedProject.buildings[0].id : null);
-        }
+      const updatedProject = await api.deleteBuilding(project.id, buildingId);
+      onProjectUpdate(updatedProject);
+      if (selectedBuildingId === buildingId) {
+        setSelectedBuildingId(updatedProject.buildings.length > 0 ? updatedProject.buildings[0].id : null);
       }
     } catch (e) {
       alert('Fehler beim Löschen des Gebäudes.');
@@ -90,11 +87,8 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
   const handleDeleteRoom = async (buildingId: string, roomId: string, roomName: string) => {
     if (!confirm(`Raum '${roomName}' löschen?`)) return;
     try {
-      const res = await fetch(`http://localhost:8080/api/projects/${project.id}/buildings/${buildingId}/rooms/${roomId}`, { method: 'DELETE' });
-      if (res.ok) {
-        const updatedProject = await res.json();
-        onProjectUpdate(updatedProject);
-      }
+      const updatedProject = await api.deleteRoom(project.id, buildingId, roomId);
+      onProjectUpdate(updatedProject);
     } catch (e) {
       alert('Fehler beim Löschen des Raums.');
     }
@@ -107,29 +101,20 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
         name: singleBedName.trim(),
         bedType: singleBedType,
       };
-      const res = await fetch(`http://localhost:8080/api/projects/${project.id}/buildings/${selectedBuildingId}/rooms/${addingBedRoomId}/beds`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bedPayload),
-      });
-      if (res.ok) {
-        const updatedProject = await res.json();
-        onProjectUpdate(updatedProject);
-        setSingleBedName('');
-        setAddingBedRoomId(null);
-      }
+      const updatedProject = await api.addBed(project.id, selectedBuildingId, addingBedRoomId, bedPayload);
+      onProjectUpdate(updatedProject);
+      setSingleBedName('');
+      setAddingBedRoomId(null);
     } catch (e) {
       alert('Fehler beim Hinzufügen des Betts.');
     }
   };
 
-  const handleDeleteBed = async (buildingId: string, roomId: string, bedId: string) => {
+  const handleDeleteBed = async (_buildingId: string, roomId: string, bedId: string) => {
+    if (!selectedBuildingId) return;
     try {
-      const res = await fetch(`http://localhost:8080/api/projects/${project.id}/buildings/${buildingId}/rooms/${roomId}/beds/${bedId}`, { method: 'DELETE' });
-      if (res.ok) {
-        const updatedProject = await res.json();
-        onProjectUpdate(updatedProject);
-      }
+      const updatedProject = await api.deleteBed(project.id, selectedBuildingId, roomId, bedId);
+      onProjectUpdate(updatedProject);
     } catch (e) {
       alert('Fehler beim Löschen des Betts.');
     }
