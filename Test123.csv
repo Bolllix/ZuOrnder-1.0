@@ -1,0 +1,31 @@
+﻿Vorname;Nachname;Alter;Geschlecht;Anreisedatum;Abreisedatum;Zimmernummer;Ernährung;Anmerkungen
+Marie;Schäfer;12;Weiblich;12.08.2026;16.08.2026;111;Allesesser;
+Johanna;Müller;19;Weiblich;12.08.2026;18.08.2026;107;Allesesser;Spätere Anreise (ca. 18 Uhr)
+Felix;Hoffmann;12;Männlich;14.08.2026;19.08.2026;102;Glutenfrei;
+Hannah;Schmidt;19;Weiblich;14.08.2026;20.08.2026;107;Allesesser;Pollenallergie
+Mia;Fischer;12;Weiblich;15.08.2026;20.08.2026;103;Allesesser;Spätere Anreise (ca. 18 Uhr)
+Noah;Müller;16;Männlich;15.08.2026;20.08.2026;109;Laktosefrei;
+Paul;Schneider;17;Männlich;12.08.2026;16.08.2026;115;Allesesser;
+Hannah;Schäfer;19;Weiblich;13.08.2026;19.08.2026;101;Glutenfrei;Hausstauballergie
+Emilia;Klein;12;Weiblich;13.08.2026;16.08.2026;115;Allesesser;
+Nele;Meyer;19;Weiblich;13.08.2026;19.08.2026;114;Vegetarisch;
+Felix;Meyer;14;Männlich;14.08.2026;18.08.2026;106;Allesesser;Hausstauballergie
+Julian;Bauer;13;Männlich;12.08.2026;19.08.2026;106;Allesesser;
+Emilia;Müller;12;Weiblich;12.08.2026;18.08.2026;108;Allesesser;
+Hannah;Müller;15;Weiblich;15.08.2026;21.08.2026;112;Allesesser;Spätere Anreise (ca. 18 Uhr)
+Johanna;Schäfer;18;Weiblich;15.08.2026;21.08.2026;113;Allesesser;
+Lea;Becker;13;Weiblich;14.08.2026;17.08.2026;115;Allesesser;
+Laura;Hoffmann;15;Weiblich;15.08.2026;21.08.2026;107;Allesesser;Benötigt unteres Bett (Asthma)
+Lena;Koch;14;Weiblich;13.08.2026;16.08.2026;107;Allesesser;
+Felix;Klein;19;Männlich;13.08.2026;20.08.2026;112;Allesesser;
+Julian;Müller;13;Männlich;15.08.2026;21.08.2026;104;Allesesser;
+Lukas;Schulz;15;Männlich;12.08.2026;17.08.2026;101;Allesesser;Hausstauballergie
+Clara;Schäfer;19;Weiblich;13.08.2026;19.08.2026;101;Allesesser;Spätere Anreise (ca. 18 Uhr)
+Emma;Meyer;18;Weiblich;12.08.2026;15.08.2026;110;Allesesser;Pollenallergie
+Mia;Weber;16;Weiblich;13.08.2026;16.08.2026;112;Allesesser;Benötigt unteres Bett (Asthma)
+Nele;Müller;13;Divers;12.08.2026;18.08.2026;104;Vegetarisch;Pollenallergie
+Maximilian;Schmidt;13;Männlich;12.08.2026;15.08.2026;107;Allesesser;
+Anna;Wagner;13;Weiblich;15.08.2026;21.08.2026;103;Allesesser;
+Lukas;Klein;14;Männlich;15.08.2026;22.08.2026;103;Vegetarisch;Hausstauballergie
+Finn;Hoffmann;14;Männlich;15.08.2026;21.08.2026;112;Laktosefrei;
+Charlotte;Schmidt;13;Weiblich;13.08.2026;18.08.2026;110;Allesesser;Pollenallergie

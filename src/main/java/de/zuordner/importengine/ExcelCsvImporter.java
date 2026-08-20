@@ -1,12 +1,15 @@
 package de.zuordner.importengine;
 
+import com.opencsv.CSVParser;
+import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -14,7 +17,7 @@ import java.util.*;
 public class ExcelCsvImporter {
 
     public List<String> getSheetNames(InputStream inputStream, String filename) throws Exception {
-        if (filename.toLowerCase().endsWith(".csv")) {
+        if (filename != null && filename.toLowerCase().endsWith(".csv")) {
             return List.of("CSV Data");
         }
 
@@ -28,7 +31,7 @@ public class ExcelCsvImporter {
     }
 
     public TableData readTablePreview(InputStream inputStream, String filename, String sheetName, int headerRowIndex, int maxPreviewRows) throws Exception {
-        if (filename.toLowerCase().endsWith(".csv")) {
+        if (filename != null && filename.toLowerCase().endsWith(".csv")) {
             return readCsvTable(inputStream, headerRowIndex, maxPreviewRows);
         } else {
             return readExcelTable(inputStream, sheetName, headerRowIndex, maxPreviewRows);
@@ -36,10 +39,28 @@ public class ExcelCsvImporter {
     }
 
     private TableData readCsvTable(InputStream inputStream, int headerRowIndex, int maxPreviewRows) throws Exception {
+        byte[] bytes = inputStream.readAllBytes();
+        if (bytes.length == 0) {
+            return new TableData("CSV Data", new ArrayList<>(), new ArrayList<>());
+        }
+
+        // Try UTF-8 first, fallback to ISO-8859-1 only if replacement character \uFFFD is present
+        String content = new String(bytes, StandardCharsets.UTF_8);
+        if (content.contains("\uFFFD")) {
+            content = new String(bytes, StandardCharsets.ISO_8859_1);
+        }
+
+        // Strip UTF-8 Byte Order Mark (BOM) if present (in UTF-8 or Windows-1252/ISO-8859-1 format)
+        content = content.replace("\uFEFF", "").replace("\u00EF\u00BB\u00BF", "").replace("ï»¿", "");
+
+        // Detect CSV Delimiter (; vs , vs \t vs |)
+        char delimiter = detectCsvDelimiter(content);
+
+        CSVParser parser = new CSVParserBuilder().withSeparator(delimiter).build();
         List<String> headers = new ArrayList<>();
         List<List<String>> rows = new ArrayList<>();
 
-        try (CSVReader reader = new CSVReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+        try (CSVReader reader = new CSVReaderBuilder(new StringReader(content)).withCSVParser(parser).build()) {
             List<String[]> allLines = reader.readAll();
             if (allLines.isEmpty()) {
                 return new TableData("CSV Data", headers, rows);
@@ -50,20 +71,56 @@ public class ExcelCsvImporter {
                 String[] line = allLines.get(i);
                 if (i == headerRowIndex) {
                     for (int c = 0; c < line.length; c++) {
-                        String colName = line[c] != null && !line[c].trim().isEmpty() ? line[c].trim() : "Spalte " + (c + 1);
+                        String rawVal = line[c] != null ? line[c].replace("\uFEFF", "").replace("\u00EF\u00BB\u00BF", "").replace("ï»¿", "").trim() : "";
+                        String colName = !rawVal.isEmpty() ? rawVal : "Spalte " + (c + 1);
                         headers.add(colName);
                     }
                 } else if (i > headerRowIndex) {
                     if (maxPreviewRows > 0 && lineCount >= maxPreviewRows) {
                         break;
                     }
-                    rows.add(Arrays.asList(line));
-                    lineCount++;
+                    // Filter empty lines
+                    boolean hasContent = false;
+                    List<String> rowVals = new ArrayList<>();
+                    for (String val : line) {
+                        if (val != null && !val.trim().isEmpty()) {
+                            hasContent = true;
+                        }
+                        rowVals.add(val != null ? val.trim() : "");
+                    }
+                    if (hasContent) {
+                        rows.add(rowVals);
+                        lineCount++;
+                    }
                 }
             }
         }
 
         return new TableData("CSV Data", headers, rows);
+    }
+
+    private char detectCsvDelimiter(String content) {
+        if (content == null || content.isEmpty()) return ',';
+
+        String[] lines = content.split("\r?\n");
+        if (lines.length == 0) return ',';
+
+        String firstLine = lines[0];
+        long semicolons = firstLine.chars().filter(ch -> ch == ';').count();
+        long commas = firstLine.chars().filter(ch -> ch == ',').count();
+        long tabs = firstLine.chars().filter(ch -> ch == '\t').count();
+        long pipes = firstLine.chars().filter(ch -> ch == '|').count();
+
+        if (semicolons >= commas && semicolons >= tabs && semicolons >= pipes && semicolons > 0) {
+            return ';';
+        }
+        if (tabs >= commas && tabs >= pipes && tabs > 0) {
+            return '\t';
+        }
+        if (pipes >= commas && pipes > 0) {
+            return '|';
+        }
+        return ',';
     }
 
     private TableData readExcelTable(InputStream inputStream, String sheetName, int headerRowIndex, int maxPreviewRows) throws Exception {

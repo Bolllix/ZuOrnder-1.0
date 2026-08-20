@@ -1,9 +1,11 @@
 package de.zuordner.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Person {
     private String id;
     private String firstname;
