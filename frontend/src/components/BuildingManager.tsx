@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import type { Project, BedType } from '../types';
 import { api } from '../services/api';
-import { Building2, Plus, Bed as BedIcon, Trash2 } from 'lucide-react';
+import { Building2, Plus, Bed as BedIcon, Trash2, AlertCircle } from 'lucide-react';
 
 interface BuildingManagerProps {
   project: Project;
@@ -10,6 +10,9 @@ interface BuildingManagerProps {
 
 export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onProjectUpdate }) => {
   const [newBuildingName, setNewBuildingName] = useState('');
+  const [buildingNameError, setBuildingNameError] = useState<string | null>(null);
+  const buildingInputRef = useRef<HTMLInputElement>(null);
+
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(
     project.buildings.length > 0 ? project.buildings[0].id : null
   );
@@ -27,7 +30,15 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
   const [singleBedType, setSingleBedType] = useState<BedType>('SINGLE');
 
   const handleAddBuilding = async () => {
-    if (!newBuildingName.trim()) return;
+    if (!newBuildingName.trim()) {
+      setBuildingNameError('Bitte gib zuerst einen Namen für das Gebäude ein!');
+      if (buildingInputRef.current) {
+        buildingInputRef.current.focus();
+      }
+      return;
+    }
+
+    setBuildingNameError(null);
     try {
       const updated = await api.addBuilding(project.id, { name: newBuildingName.trim(), rooms: [] });
       onProjectUpdate(updated);
@@ -135,31 +146,50 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
           </p>
         </div>
 
-        {/* Add Building Inline */}
-        <div className="flex items-center space-x-2">
-          <input
-            type="text"
-            placeholder="Neues Gebäude (z.B. Haupthaus)"
-            value={newBuildingName}
-            onChange={(e) => setNewBuildingName(e.target.value)}
-            className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:border-indigo-500"
-          />
-          <button
-            onClick={handleAddBuilding}
-            className="flex items-center space-x-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg shadow-md shadow-indigo-500/20 transition"
-          >
-            <Plus className="w-4 h-4" /> <span>Gebäude anlegen</span>
-          </button>
+        {/* Add Building Form */}
+        <div className="flex flex-col items-end space-y-1 w-full sm:w-auto">
+          <div className="flex items-center space-x-2 w-full sm:w-auto">
+            <input
+              ref={buildingInputRef}
+              type="text"
+              placeholder="Gebäudename (z.B. Haupthaus, Haus A)"
+              value={newBuildingName}
+              onChange={(e) => {
+                setNewBuildingName(e.target.value);
+                if (e.target.value.trim()) setBuildingNameError(null);
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && handleAddBuilding()}
+              className={`px-3 py-2 bg-slate-800 border rounded-lg text-slate-200 text-sm focus:outline-none transition w-full sm:w-64 ${
+                buildingNameError ? 'border-rose-500 ring-2 ring-rose-500/30' : 'border-slate-700 focus:border-indigo-500'
+              }`}
+            />
+            <button
+              onClick={handleAddBuilding}
+              className="flex items-center space-x-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-lg shadow-md shadow-indigo-500/20 transition whitespace-nowrap"
+            >
+              <Plus className="w-4 h-4" /> <span>Gebäude anlegen</span>
+            </button>
+          </div>
+
+          {buildingNameError ? (
+            <span className="text-xs font-semibold text-rose-400 flex items-center gap-1">
+              <AlertCircle className="w-3.5 h-3.5" /> {buildingNameError}
+            </span>
+          ) : (
+            <span className="text-[11px] text-slate-500">Name eingeben & "Gebäude anlegen" klicken.</span>
+          )}
         </div>
       </div>
 
       {/* Buildings Tabs & Main Section */}
       {project.buildings.length === 0 ? (
-        <div className="p-12 glass-panel rounded-2xl text-center space-y-3">
-          <Building2 className="w-12 h-12 text-slate-600 mx-auto" />
-          <h3 className="text-lg font-semibold text-slate-300">Noch keine Gebäude vorhanden</h3>
-          <p className="text-slate-400 text-sm max-w-md mx-auto">
-            Fügen Sie oben ein Gebäude hinzu, um Räume und einzelne Betten anzulegen.
+        <div className="p-12 glass-panel rounded-2xl text-center space-y-4 border border-slate-800">
+          <div className="w-16 h-16 bg-indigo-600/20 rounded-full flex items-center justify-center mx-auto text-indigo-400">
+            <Building2 className="w-8 h-8" />
+          </div>
+          <h3 className="text-lg font-bold text-slate-200">Noch keine Gebäude vorhanden</h3>
+          <p className="text-slate-400 text-xs max-w-md mx-auto">
+            Trage oben rechts den Namen deines ersten Gebäudes ein (z. B. <i>Haupthaus</i> oder <i>Gebäude A</i>) und klicke auf <b>"Gebäude anlegen"</b>.
           </p>
         </div>
       ) : (

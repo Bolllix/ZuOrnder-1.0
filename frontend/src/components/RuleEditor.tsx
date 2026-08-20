@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import type { Project, DynamicRule, RuleType, TargetScope, RuleAction, Condition } from '../types';
+import type { Project, DynamicRule, RuleType, TargetScope, Condition } from '../types';
 import { api } from '../services/api';
-import { SlidersHorizontal, Plus, Trash2, Check, Edit3, Info, HelpCircle } from 'lucide-react';
+import { SlidersHorizontal, Plus, Trash2, Check, Edit3, Info, HelpCircle, Sparkles, ArrowRight } from 'lucide-react';
 
 interface RuleEditorProps {
   project: Project;
@@ -17,9 +17,8 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [ruleType, setRuleType] = useState<RuleType>('SOFT');
-  const [targetScope, setTargetScope] = useState<TargetScope>('BED_PERSON');
-  const [action] = useState<RuleAction>('ADD_POINTS');
-  const [weight, setWeight] = useState<number>(10);
+  const [targetScope, setTargetScope] = useState<TargetScope>('PAIR_CO_LOCATION');
+  const [weight, setWeight] = useState<number>(50);
   const [conditions, setConditions] = useState<Condition[]>([]);
 
   const handleOpenAddModal = () => {
@@ -27,10 +26,38 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
     setName('');
     setDescription('');
     setRuleType('SOFT');
-    setTargetScope('BED_PERSON');
-    setWeight(10);
+    setTargetScope('PAIR_CO_LOCATION');
+    setWeight(50);
     setConditions([]);
     setShowAddModal(true);
+  };
+
+  const handleApplyPreset = (preset: 'COUPLES' | 'GROUPS' | 'SENIORS_BUNK') => {
+    if (preset === 'COUPLES') {
+      setName('Paare bevorzugt im selben Zimmer');
+      setDescription('Personen mit der gleichen Paar-ID sollen im selben Zimmer untergebracht werden.');
+      setRuleType('SOFT');
+      setTargetScope('PAIR_CO_LOCATION');
+      setWeight(50);
+      setConditions([]);
+    } else if (preset === 'GROUPS') {
+      setName('Gruppenzusammenhalt im Zimmer');
+      setDescription('Personen der gleichen Gruppe/Klasse bevorzugt im selben Zimmer unterbringen.');
+      setRuleType('SOFT');
+      setTargetScope('GROUP_CO_LOCATION');
+      setWeight(20);
+      setConditions([]);
+    } else if (preset === 'SENIORS_BUNK') {
+      setName('Senioren (>65 Jahre) nicht ins obere Hochbett');
+      setDescription('Aus Sicherheitsgründen keine Personen über 65 Jahre im oberen Hochbett unterbringen.');
+      setRuleType('HARD');
+      setTargetScope('BED_PERSON');
+      setWeight(-999999);
+      setConditions([
+        { field: 'person.age', operator: 'GREATER_THAN', value: 65 },
+        { field: 'bed.isTopBunk', operator: 'EQUALS', value: true },
+      ]);
+    }
   };
 
   const handleOpenEditModal = (rule: DynamicRule) => {
@@ -68,7 +95,7 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
         active: true,
         ruleType,
         targetScope,
-        action: ruleType === 'HARD' ? 'FORBID' : action,
+        action: ruleType === 'HARD' ? 'FORBID' : 'ADD_POINTS',
         weight: ruleType === 'HARD' ? -999999 : weight,
         conditions,
       };
@@ -110,84 +137,120 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
-            <SlidersHorizontal className="w-7 h-7 text-indigo-400" /> Dynamic Rule Engine & Editor
+            <SlidersHorizontal className="w-7 h-7 text-indigo-400" /> Regel-Verwaltung & Optimierung
           </h2>
           <p className="text-slate-400 text-sm mt-1">
-            Erstellen, bearbeiten & verwalten Sie alle Zuordnungsregeln und Gewichtungen.
+            Formuliere WENN → DANN Regeln für automatische Zimmer- und Bettenzuordnungen.
           </p>
         </div>
 
         <button
           onClick={handleOpenAddModal}
-          className="flex items-center space-x-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg shadow-md transition"
+          className="flex items-center space-x-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition"
         >
-          <Plus className="w-4 h-4" /> <span>Neue Regel formulieren</span>
+          <Plus className="w-4 h-4" /> <span>Neue Regel anlegen</span>
         </button>
       </div>
 
       {/* Add / Edit Rule Modal */}
       {showAddModal && (
-        <div className="glass-panel p-6 rounded-2xl border border-indigo-500/30 space-y-5 shadow-2xl">
-          <h3 className="text-lg font-bold text-slate-100">
-            {editingRuleId ? 'Bestehende Regel bearbeiten' : 'Neue Regel formulieren'}
-          </h3>
+        <div className="glass-panel p-6 rounded-2xl border border-indigo-500/40 space-y-6 shadow-2xl">
+          <div className="flex items-center justify-between border-b border-slate-700/60 pb-3">
+            <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-indigo-400" />
+              {editingRuleId ? 'Regel bearbeiten' : 'Neue Regel im WENN → DANN Format formulieren'}
+            </h3>
+          </div>
 
+          {/* Presets Bar */}
+          {!editingRuleId && (
+            <div className="p-4 bg-slate-900/90 rounded-xl border border-slate-800 space-y-2">
+              <span className="text-xs font-semibold text-indigo-300 uppercase tracking-wider block">
+                Schnell-Vorlagen (1-Klick Vorlage laden):
+              </span>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleApplyPreset('COUPLES')}
+                  className="px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-200 border border-indigo-500/30 rounded-lg text-xs font-medium transition"
+                >
+                  👫 Paare zusammen (+50 Pkt)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleApplyPreset('GROUPS')}
+                  className="px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-200 border border-indigo-500/30 rounded-lg text-xs font-medium transition"
+                >
+                  👥 Gruppe/Klasse zusammen (+20 Pkt)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleApplyPreset('SENIORS_BUNK')}
+                  className="px-3 py-1.5 bg-rose-500/20 hover:bg-rose-500/40 text-rose-200 border border-rose-500/30 rounded-lg text-xs font-medium transition"
+                >
+                  🚫 Senioren nicht oben (Verbot)
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Form Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-slate-400 mb-1">Regel-Name *</label>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">1. Regel-Bezeichnung *</label>
               <input
                 type="text"
-                placeholder="z.B. Senioren nicht nach oben"
+                placeholder="z.B. Paare im selben Zimmer bevorzugen"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-sm"
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-sm focus:border-indigo-500"
               />
             </div>
             <div>
-              <label className="block text-xs text-slate-400 mb-1">Beschreibung</label>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">2. Kurze Beschreibung</label>
               <input
                 type="text"
-                placeholder="Kurze Erklärung der Regel"
+                placeholder="Erklärung für das Team"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-sm"
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-sm focus:border-indigo-500"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs text-slate-400 mb-1">Regel-Typ</label>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">3. Worauf bezieht sich die Regel?</label>
               <select
-                value={ruleType}
-                onChange={(e: any) => setRuleType(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-sm font-medium"
+                value={targetScope}
+                onChange={(e: any) => setTargetScope(e.target.value)}
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-xs font-medium"
               >
-                <option value="HARD">Harte Regel (Verbot / Restriktion)</option>
-                <option value="SOFT">Weiche Regel (Wunsch/Punkte)</option>
+                <option value="PAIR_CO_LOCATION">👫 Paare (Personen mit gleicher Paar-ID im selben Zimmer)</option>
+                <option value="GROUP_CO_LOCATION">👥 Gruppen (Personen derselben Gruppe im selben Zimmer)</option>
+                <option value="BED_PERSON">👤 Einzelperson & Bett (z. B. Alter vs. Hochbett)</option>
+                <option value="ROOM_PERSON">🚪 Einzelperson & Raum (z. B. Geschlecht vs. Raumtyp)</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-xs text-slate-400 mb-1">Geltungsbereich (Scope)</label>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">4. Was soll passieren? (DANN...)</label>
               <select
-                value={targetScope}
-                onChange={(e: any) => setTargetScope(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-sm"
+                value={ruleType}
+                onChange={(e: any) => setRuleType(e.target.value)}
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-xs font-bold"
               >
-                <option value="BED_PERSON">Person & Bett (z.B. Alter vs. Hochbett)</option>
-                <option value="ROOM_PERSON">Person & Raum (z.B. Geschlecht vs. Mädchenzimmer)</option>
-                <option value="PAIR_CO_LOCATION">Paare im selben Zimmer</option>
-                <option value="GROUP_CO_LOCATION">Gruppen im selben Zimmer/Gebäude</option>
+                <option value="SOFT">DANN → Belohnung (Weiche Regel / Pluspunkte)</option>
+                <option value="HARD">DANN → Striktes Verbot (Harte Regel / Ausgeschlossen)</option>
               </select>
             </div>
 
             {ruleType === 'SOFT' && (
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Gewichtung / Punkte (+/-)</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Wunsch-Stärke (Bonus-Punkte)</label>
                 <input
                   type="number"
                   value={weight}
@@ -198,77 +261,109 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
             )}
           </div>
 
-          {/* Conditions Section */}
-          <div className="space-y-3 pt-2 border-t border-slate-800">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Bedingungen (WENN...)</span>
-              <button
-                onClick={handleAddCondition}
-                className="text-xs px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-indigo-400 rounded-lg border border-slate-700"
-              >
-                + Bedingung hinzufügen
-              </button>
-            </div>
+          {/* Conditional Logic Builder (WENN...) */}
+          {(targetScope === 'BED_PERSON' || targetScope === 'ROOM_PERSON') && (
+            <div className="space-y-3 pt-3 border-t border-slate-800">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
+                  WENN... (Zusatzbedingungen definieren)
+                </span>
+                <button
+                  type="button"
+                  onClick={handleAddCondition}
+                  className="text-xs px-3 py-1 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 rounded-lg border border-indigo-500/30"
+                >
+                  + Bedingung hinzufügen
+                </button>
+              </div>
 
-            {conditions.length === 0 ? (
-              <p className="text-xs text-slate-500 italic">Keine Einzelbedingungen (gilt allgemein für den ausgewählten Scope).</p>
-            ) : (
-              conditions.map((cond, idx) => (
-                <div key={idx} className="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center p-2.5 bg-slate-900/80 rounded-xl border border-slate-800">
-                  <select
-                    value={cond.field}
-                    onChange={(e) => handleUpdateCondition(idx, 'field', e.target.value)}
-                    className="px-2 py-1.5 bg-slate-800 border border-slate-700 rounded text-slate-200 text-xs"
-                  >
-                    <option value="person.age">Person: Alter</option>
-                    <option value="person.gender">Person: Geschlecht</option>
-                    <option value="bed.isTopBunk">Bett: Ist obere Etage</option>
-                    <option value="room.girlsRoom">Raum: Ist Mädchenzimmer</option>
-                    <option value="room.boysRoom">Raum: Ist Jungenzimmer</option>
-                    <option value="room.floor">Raum: Etage</option>
-                  </select>
+              {conditions.length === 0 ? (
+                <p className="text-xs text-slate-500 italic p-3 bg-slate-900/50 rounded-xl border border-slate-800">
+                  Keine spezifischen Filter-Bedingungen. Gilt für alle Zuordnungen in diesem Bereich.
+                </p>
+              ) : (
+                conditions.map((cond, idx) => (
+                  <div key={idx} className="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center p-3 bg-slate-900 rounded-xl border border-slate-800">
+                    <div>
+                      <label className="block text-[10px] text-slate-500 mb-0.5">Eigenschaft</label>
+                      <select
+                        value={cond.field}
+                        onChange={(e) => handleUpdateCondition(idx, 'field', e.target.value)}
+                        className="w-full px-2 py-1.5 bg-slate-800 border border-slate-700 rounded text-slate-200 text-xs"
+                      >
+                        <option value="person.age">Person: Alter</option>
+                        <option value="person.gender">Person: Geschlecht</option>
+                        <option value="bed.isTopBunk">Bett: Ist obere Etage</option>
+                        <option value="room.floor">Raum: Etage</option>
+                      </select>
+                    </div>
 
-                  <select
-                    value={cond.operator}
-                    onChange={(e: any) => handleUpdateCondition(idx, 'operator', e.target.value)}
-                    className="px-2 py-1.5 bg-slate-800 border border-slate-700 rounded text-slate-200 text-xs font-mono"
-                  >
-                    <option value="EQUALS">=</option>
-                    <option value="NOT_EQUALS">!=</option>
-                    <option value="GREATER_THAN">&gt;</option>
-                    <option value="LESS_THAN">&lt;</option>
-                  </select>
+                    <div>
+                      <label className="block text-[10px] text-slate-500 mb-0.5">Vergleich</label>
+                      <select
+                        value={cond.operator}
+                        onChange={(e: any) => handleUpdateCondition(idx, 'operator', e.target.value)}
+                        className="w-full px-2 py-1.5 bg-slate-800 border border-slate-700 rounded text-slate-200 text-xs font-mono"
+                      >
+                        <option value="GREATER_THAN">größer als (&gt;)</option>
+                        <option value="EQUALS">ist gleich (=)</option>
+                        <option value="NOT_EQUALS">ist ungleich (!=)</option>
+                        <option value="LESS_THAN">kleiner als (&lt;)</option>
+                      </select>
+                    </div>
 
-                  <input
-                    type="text"
-                    placeholder="Wert"
-                    value={cond.value}
-                    onChange={(e) => handleUpdateCondition(idx, 'value', e.target.value)}
-                    className="px-2 py-1.5 bg-slate-800 border border-slate-700 rounded text-slate-200 text-xs font-mono"
-                  />
+                    <div>
+                      <label className="block text-[10px] text-slate-500 mb-0.5">Wert</label>
+                      <input
+                        type="text"
+                        placeholder="Wert (z.B. 65)"
+                        value={cond.value}
+                        onChange={(e) => handleUpdateCondition(idx, 'value', e.target.value)}
+                        className="w-full px-2 py-1.5 bg-slate-800 border border-slate-700 rounded text-slate-200 text-xs font-mono"
+                      />
+                    </div>
 
-                  <div className="text-right">
-                    <button onClick={() => handleRemoveCondition(idx)} className="text-slate-500 hover:text-rose-400 p-1">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="text-right pt-3 sm:pt-0">
+                      <button type="button" onClick={() => handleRemoveCondition(idx)} className="text-slate-500 hover:text-rose-400 p-1">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))
-            )}
+                ))
+              )}
+            </div>
+          )}
+
+          {/* Live Sentence Preview Box */}
+          <div className="p-4 bg-indigo-950/40 border border-indigo-500/30 rounded-xl space-y-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-300 flex items-center gap-1">
+              <ArrowRight className="w-3.5 h-3.5" /> Vorschau der Regel-Logik:
+            </span>
+            <div className="text-xs text-slate-200 font-mono">
+              {ruleType === 'HARD' ? (
+                <span className="text-rose-300">
+                  WENN die Bedingungen zutreffen, DANN ist die Unterbringung <strong>STRIKT VERBOTEN</strong>.
+                </span>
+              ) : (
+                <span className="text-emerald-300">
+                  WENN die Zuordnung zutrifft, DANN belohnt der Algorithmus den Plan mit <strong>+{weight} Pluspunkten</strong>.
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="flex justify-end space-x-2 pt-3 border-t border-slate-800">
-            <button onClick={() => setShowAddModal(false)} className="px-4 py-2 bg-slate-800 text-slate-400 hover:text-slate-200 text-xs rounded-lg">
+            <button type="button" onClick={() => setShowAddModal(false)} className="px-4 py-2 bg-slate-800 text-slate-400 hover:text-slate-200 text-xs rounded-lg">
               Abbrechen
             </button>
-            <button onClick={handleSaveRule} className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg">
-              {editingRuleId ? 'Änderungen speichern' : 'Regel anlegen'}
+            <button type="button" onClick={handleSaveRule} className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg">
+              {editingRuleId ? 'Änderungen speichern' : 'Regel aktivieren'}
             </button>
           </div>
         </div>
       )}
 
-      {/* Rules List */}
+      {/* Rules List Display */}
       <div className="space-y-3">
         {project.rules.map((r) => {
           const isHard = r.ruleType === 'HARD';
@@ -306,7 +401,6 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
                 </div>
 
                 <div className="flex items-center space-x-2">
-                  {/* Info Button */}
                   <button
                     onClick={() => setInfoRuleId(isInfoOpen ? null : r.id)}
                     className={`flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-medium transition ${
@@ -319,7 +413,6 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
                     <span>Mehr Infos</span>
                   </button>
 
-                  {/* Edit Button */}
                   <button
                     onClick={() => handleOpenEditModal(r)}
                     title="Regel bearbeiten"
@@ -328,7 +421,6 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
                     <Edit3 className="w-4 h-4" />
                   </button>
 
-                  {/* Delete Button */}
                   <button
                     onClick={() => handleDeleteRule(r.id)}
                     title="Regel löschen"
@@ -339,36 +431,34 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
                 </div>
               </div>
 
-              {/* Info Drawer Panel */}
+              {/* Info Drawer */}
               {isInfoOpen && (
                 <div className="p-4 glass-card rounded-xl border border-indigo-500/30 text-xs text-slate-300 space-y-2 bg-slate-900/90 ml-6">
                   <div className="font-bold text-indigo-300 flex items-center gap-1.5">
-                    <HelpCircle className="w-4 h-4" /> Funktionsweise & Auswertungsdetails:
+                    <HelpCircle className="w-4 h-4" /> WENN → DANN Funktionsweise:
                   </div>
                   <div>
                     <span className="text-slate-400">Regel-Typ: </span>
-                    <span className="font-mono text-slate-200">{r.ruleType === 'HARD' ? 'Harte Verbot-Restriktion' : 'Weiche Präferenz-Gewichtung'}</span>
+                    <span className="font-mono text-slate-200">{r.ruleType === 'HARD' ? 'Harte Verbot-Restriktion' : 'Weiche Präferenz (+Punkte)'}</span>
                   </div>
                   <div>
                     <span className="text-slate-400">Geltungsbereich (Scope): </span>
                     <span className="font-mono text-slate-200">{r.targetScope}</span>
                   </div>
                   <div>
-                    <span className="text-slate-400">Auswirkung auf Score: </span>
-                    <span className="font-mono text-slate-200">{r.ruleType === 'HARD' ? 'Verbot (-999999 Pkt / Kombination ausgeschlossen)' : `+${r.weight} Punkte bei Erfüllung`}</span>
+                    <span className="text-slate-400">Auswirkung: </span>
+                    <span className="font-mono text-slate-200">{r.ruleType === 'HARD' ? 'Ausgeschlossen (-999999 Pkt)' : `+${r.weight} Pluspunkte bei Erfüllung`}</span>
                   </div>
-                  <div>
-                    <span className="text-slate-400">Gegenwärtige Bedingungen: </span>
-                    {r.conditions && r.conditions.length > 0 ? (
+                  {r.conditions && r.conditions.length > 0 && (
+                    <div>
+                      <span className="text-slate-400">Aktive WENN-Bedingungen: </span>
                       <ul className="list-disc list-inside mt-1 space-y-0.5 font-mono text-slate-200">
                         {r.conditions.map((c, i) => (
                           <li key={i}>WENN {c.field} {c.operator} "{String(c.value)}"</li>
                         ))}
                       </ul>
-                    ) : (
-                      <span className="italic text-slate-500">Keine spezifischen Zusatzbedingungen (gilt für den gesamten Scope)</span>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
