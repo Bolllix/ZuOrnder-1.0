@@ -37,6 +37,17 @@ public class PersonController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PostMapping("/batch")
+    public ResponseEntity<Project> addPersonsBatch(@PathVariable String projectId, @RequestBody List<Person> persons) {
+        return projectRepository.getProjectById(projectId)
+                .map(p -> {
+                    p.getPersons().addAll(persons);
+                    Project saved = projectRepository.saveProject(p);
+                    return ResponseEntity.ok(saved);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PutMapping("/{personId}")
     public ResponseEntity<Project> updatePerson(@PathVariable String projectId, @PathVariable String personId, @RequestBody Person updated) {
         return projectRepository.getProjectById(projectId)

@@ -1,5 +1,7 @@
 package de.zuordner.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.zuordner.importengine.*;
 import de.zuordner.model.Person;
 import de.zuordner.model.Project;
@@ -18,11 +20,13 @@ public class ImportController {
     private final ExcelCsvImporter importer;
     private final TableMappingService mappingService;
     private final ProjectRepository projectRepository;
+    private final ObjectMapper objectMapper;
 
     public ImportController(ExcelCsvImporter importer, TableMappingService mappingService, ProjectRepository projectRepository) {
         this.importer = importer;
         this.mappingService = mappingService;
         this.projectRepository = projectRepository;
+        this.objectMapper = new ObjectMapper();
     }
 
     @PostMapping({"/api/import/sheets", "/api/projects/{projectId}/import/sheets"})
@@ -60,10 +64,12 @@ public class ImportController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "sheetName", required = false) String sheetName,
             @RequestParam(value = "headerRowIndex", defaultValue = "0") int headerRowIndex,
-            @RequestBody Map<String, String> columnMapping) {
+            @RequestParam("columnMapping") String columnMappingJson) {
         try {
+            // maxRows = 0 parses ALL rows in the table
             TableData fullData = importer.readTablePreview(file.getInputStream(), file.getOriginalFilename(), sheetName, headerRowIndex, 0);
-            ImportValidationResult result = mappingService.mapTableToPersons(fullData, columnMapping);
+            Map<String, String> mapping = objectMapper.readValue(columnMappingJson, new TypeReference<Map<String, String>>() {});
+            ImportValidationResult result = mappingService.mapTableToPersons(fullData, mapping);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             e.printStackTrace();
@@ -85,7 +91,7 @@ public class ImportController {
         }
     }
 
-    @PostMapping({"/api/import/project/{projectId}", "/api/projects/{projectId}/import/save"})
+    @PostMapping({"/api/import/project/{projectId}", "/api/projects/{projectId}/import/save", "/api/projects/{projectId}/persons/batch"})
     public ResponseEntity<Project> importToProject(
             @PathVariable String projectId,
             @RequestBody List<Person> personsToImport) {

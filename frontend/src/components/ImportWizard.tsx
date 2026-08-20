@@ -31,13 +31,13 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({ project, onProjectUp
     { value: 'specialneeds', label: 'Besondere Anforderungen' },
   ];
 
-  // Step 1: File Upload & fetch headers
+  // Step 1: File Upload & fetch headers preview (10 rows for display)
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
       setFile(selectedFile);
       try {
-        const data = await api.parseTable(project.id, selectedFile, headerRowIndex);
+        const data = await api.parseTable(project.id, selectedFile, headerRowIndex, 10);
         setTableData(data);
         setStep(2);
       } catch (err) {
@@ -50,7 +50,7 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({ project, onProjectUp
   const handleLoadPreview = async () => {
     if (!file) return;
     try {
-      const data = await api.parseTable(project.id, file, headerRowIndex);
+      const data = await api.parseTable(project.id, file, headerRowIndex, 10);
       setTableData(data);
 
       const initialMap: Record<string, string> = {};
@@ -72,16 +72,11 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({ project, onProjectUp
     }
   };
 
-  // Step 4: Validate Mapping
+  // Step 4: Validate Mapping on FULL file (reads ALL rows)
   const handleValidateMapping = async () => {
-    if (!file || !tableData) return;
+    if (!file) return;
     try {
-      const payload = {
-        headers: tableData.headers,
-        rows: tableData.rows,
-        columnMapping,
-      };
-      const result = await api.processImport(project.id, payload);
+      const result = await api.mapColumns(project.id, file, columnMapping, headerRowIndex);
       setValidationResult(result);
       setStep(5);
     } catch (err) {
@@ -202,7 +197,7 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({ project, onProjectUp
             <Table className="w-5 h-5 text-indigo-400" /> Manuelles Spalten-Mapping
           </h3>
           <p className="text-xs text-slate-400">
-            Orordnen Sie die Spalten Ihrer Excel-Datei den Eigenschaften der Teilnehmer zu.
+            Zuordnung der Excel-Spalten zu den Feldern der Teilnehmer.
           </p>
 
           <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
@@ -245,7 +240,7 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({ project, onProjectUp
           <div className="grid grid-cols-2 gap-4 text-center">
             <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
               <div className="text-2xl font-bold text-emerald-400">{validationResult.validPersons.length}</div>
-              <div className="text-xs text-slate-400">Gültige Teilnehmerbereite</div>
+              <div className="text-xs text-slate-400">Gültige Teilnehmer bereit</div>
             </div>
             <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl">
               <div className="text-2xl font-bold text-amber-400">{validationResult.warnings.length}</div>

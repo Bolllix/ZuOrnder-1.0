@@ -62,12 +62,12 @@ export const api = {
 
   // Persons
   addPerson: async (projectId: string, person: Partial<Person>): Promise<Project> => {
-    const res = await axios.post(`${API_BASE}/projects/${projectId}/persons`, [person]);
+    const res = await axios.post(`${API_BASE}/projects/${projectId}/persons`, person);
     return res.data;
   },
 
   savePersons: async (projectId: string, persons: Person[]): Promise<Project> => {
-    const res = await axios.post(`${API_BASE}/projects/${projectId}/persons`, persons);
+    const res = await axios.post(`${API_BASE}/projects/${projectId}/import/save`, persons);
     return res.data;
   },
 
@@ -93,44 +93,25 @@ export const api = {
   },
 
   // Import Pipeline
-  parseTable: async (projectId: string, file: File, headerRowIndex: number = 0): Promise<TableData> => {
+  parseTable: async (projectId: string, file: File, headerRowIndex: number = 0, maxRows: number = 10): Promise<TableData> => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('headerRowIndex', headerRowIndex.toString());
+    formData.append('maxRows', maxRows.toString());
     const res = await axios.post(`${API_BASE}/projects/${projectId}/import/preview`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     return res.data;
   },
 
-  getSheets: async (projectId: string, file: File): Promise<TableData> => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('headerRowIndex', '0');
-    const res = await axios.post(`${API_BASE}/projects/${projectId}/import/preview`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-    return res.data;
-  },
-
-  getPreview: async (projectId: string, file: File, headerRowIndex: number): Promise<TableData> => {
+  mapColumns: async (projectId: string, file: File, columnMapping: Record<string, string>, headerRowIndex: number = 0): Promise<ImportValidationResult> => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('headerRowIndex', headerRowIndex.toString());
-    const res = await axios.post(`${API_BASE}/projects/${projectId}/import/preview`, formData, {
+    formData.append('columnMapping', JSON.stringify(columnMapping));
+    const res = await axios.post(`${API_BASE}/projects/${projectId}/import/map`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-    return res.data;
-  },
-
-  mapColumns: async (projectId: string, mappingRequest: any): Promise<ImportValidationResult> => {
-    const res = await axios.post(`${API_BASE}/projects/${projectId}/import/process`, mappingRequest);
-    return res.data;
-  },
-
-  importToProject: async (projectId: string, mappingRequest: any): Promise<Project> => {
-    await axios.post(`${API_BASE}/projects/${projectId}/import/process`, mappingRequest);
-    const res = await axios.get(`${API_BASE}/projects/${projectId}`);
     return res.data;
   },
 
