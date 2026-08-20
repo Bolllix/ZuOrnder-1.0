@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { Project, AssignmentResult, AssignmentPair } from '../types';
 import { api } from '../services/api';
-import { Sparkles, Bed as BedIcon, Info, RefreshCw } from 'lucide-react';
+import { Sparkles, Bed as BedIcon, Info, RefreshCw, Download } from 'lucide-react';
 
 interface AssignmentDashboardProps {
   project: Project;
@@ -10,6 +10,7 @@ interface AssignmentDashboardProps {
 
 export const AssignmentDashboard: React.FC<AssignmentDashboardProps> = ({ project, onProjectUpdate }) => {
   const [isCalculating, setIsCalculating] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [selectedPair, setSelectedPair] = useState<AssignmentPair | null>(null);
 
   const handleRunOptimization = async () => {
@@ -22,6 +23,17 @@ export const AssignmentDashboard: React.FC<AssignmentDashboardProps> = ({ projec
       alert('Fehler beim Berechnen der Belegung.');
     } finally {
       setIsCalculating(false);
+    }
+  };
+
+  const handleExportExcel = async () => {
+    setIsExporting(true);
+    try {
+      await api.exportExcel(project.id, project.name);
+    } catch (e) {
+      alert('Fehler beim Exportieren der Excel-Datei.');
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -40,14 +52,25 @@ export const AssignmentDashboard: React.FC<AssignmentDashboardProps> = ({ projec
           </p>
         </div>
 
-        <button
-          onClick={handleRunOptimization}
-          disabled={isCalculating}
-          className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-500/30 transition transform active:scale-95 disabled:opacity-50"
-        >
-          <RefreshCw className={`w-5 h-5 ${isCalculating ? 'animate-spin' : ''}`} />
-          <span>{isCalculating ? 'Berechne optimalen Score...' : 'Belegung jetzt berechnen'}</span>
-        </button>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={handleExportExcel}
+            disabled={isExporting}
+            className="flex items-center space-x-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-emerald-500/20 transition transform active:scale-95 disabled:opacity-50"
+          >
+            <Download className={`w-5 h-5 ${isExporting ? 'animate-bounce' : ''}`} />
+            <span>{isExporting ? 'Erstelle Excel...' : 'Excel-Export (.xlsx)'}</span>
+          </button>
+
+          <button
+            onClick={handleRunOptimization}
+            disabled={isCalculating}
+            className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-500/30 transition transform active:scale-95 disabled:opacity-50"
+          >
+            <RefreshCw className={`w-5 h-5 ${isCalculating ? 'animate-spin' : ''}`} />
+            <span>{isCalculating ? 'Berechne optimalen Score...' : 'Belegung berechnen'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Results Summary Stats Banner */}
@@ -85,7 +108,7 @@ export const AssignmentDashboard: React.FC<AssignmentDashboardProps> = ({ projec
           <Sparkles className="w-12 h-12 text-slate-600 mx-auto" />
           <h3 className="text-lg font-semibold text-slate-300">Noch keine Belegung berechnet</h3>
           <p className="text-slate-400 text-sm max-w-md mx-auto">
-            Klicken Sie oben auf "Belegung jetzt berechnen", um die optimale Verteilung Ihrer Teilnehmer auf die Betten zu ermitteln.
+            Klicken Sie oben auf "Belegung berechnen", um die optimale Verteilung Ihrer Teilnehmer auf die Betten zu ermitteln.
           </p>
         </div>
       ) : (

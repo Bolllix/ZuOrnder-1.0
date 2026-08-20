@@ -130,4 +130,18 @@ export const api = {
     const res = await axios.post(`${API_BASE}/projects/${projectId}/assignment/calculate`);
     return res.data;
   },
+
+  exportExcel: async (projectId: string, projectName: string): Promise<void> => {
+    const res = await axios.get(`${API_BASE}/projects/${projectId}/assignment/export/excel`, {
+      responseType: 'blob',
+    });
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Belegungsplan_${projectName.replace(/[^a-zA-Z0-9_-]/g, '_')}.xlsx`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  },
 };
