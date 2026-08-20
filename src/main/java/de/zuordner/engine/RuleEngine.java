@@ -91,8 +91,13 @@ public class RuleEngine {
             if (!rule.isActive()) continue;
 
             TargetScope scope = rule.getTargetScope();
-            // Relationale Scopes (Paare, Gruppen) werden in der Matrix-Orchestrierung ausgewertet
+            // Relationale Scopes (Paare, Gruppen, Geschlechtertrennung ohne Zimmer-Flag) werden in der Matrix-Orchestrierung ausgewertet
             if (scope != TargetScope.BED_PERSON && scope != TargetScope.ROOM_PERSON) {
+                continue;
+            }
+
+            // Wenn eine ROOM_PERSON Regel keine Einzelbedingungen hat, wird sie relationell in AssignmentService ausgewertet
+            if (scope == TargetScope.ROOM_PERSON && (rule.getConditions() == null || rule.getConditions().isEmpty())) {
                 continue;
             }
 

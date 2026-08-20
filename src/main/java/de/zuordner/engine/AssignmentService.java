@@ -44,6 +44,14 @@ public class AssignmentService {
             return emptyResult;
         }
 
+        // Check if an active Hard Gender Segregation Rule exists
+        boolean hasHardGenderRule = rules.stream().anyMatch(r ->
+                r.isActive() && r.getRuleType() == RuleType.HARD &&
+                        (r.getName().toLowerCase().contains("geschlecht") ||
+                                r.getDescription().toLowerCase().contains("geschlecht") ||
+                                (r.getTargetScope() == TargetScope.ROOM_PERSON && r.getAction() == RuleAction.FORBID))
+        );
+
         // Build scoring and explanation matrices
         int[][] scoreMatrix = new int[numPeople][numBeds];
         RuleEngine.EvaluationResult[][] evalMatrix = new RuleEngine.EvaluationResult[numPeople][numBeds];
@@ -88,7 +96,7 @@ public class AssignmentService {
                 int score = eval.getScore();
                 totalScore += score;
 
-                // Evaluate co-location bonuses for relational rules
+                // Evaluate co-location bonuses for relational rules (couples, groups) & gender segregation
                 List<ScoreExplanation> explanations = new ArrayList<>(eval.getExplanations());
                 for (int k = 0; k < numPeople; k++) {
                     if (k == i) continue;
@@ -97,6 +105,27 @@ public class AssignmentService {
                         Person otherPerson = persons.get(k);
                         Bed otherBed = allBeds.get(kBedIndex);
                         Room otherRoom = bedToRoomMap.get(otherBed.getId());
+
+                        // Check if in same room
+                        if (room != null && otherRoom != null && room.getId().equals(otherRoom.getId())) {
+                            boolean differentGender = !person.getGender().equalsIgnoreCase(otherPerson.getGender());
+                            boolean isCouple = (person.getPartnerId() != null && !person.getPartnerId().trim().isEmpty() &&
+                                    person.getPartnerId().equalsIgnoreCase(otherPerson.getPartnerId()));
+
+                            // REQUIREMENT 3: Hard Gender Segregation with Couple Exception
+                            if (hasHardGenderRule && differentGender && !isCouple) {
+                                hardViolations++;
+                                score += RuleEngine.FORBIDDEN_SCORE;
+                                totalScore += RuleEngine.FORBIDDEN_SCORE;
+                                explanations.add(new ScoreExplanation(
+                                        "hard-gender-segregation",
+                                        "Harte Geschlechtertrennung verletzt",
+                                        RuleEngine.FORBIDDEN_SCORE,
+                                        RuleType.HARD,
+                                        "Gemischtgeschlechtliche Unterbringung im selben Zimmer ohne Paar-ID verboten (" + otherPerson.getFullName() + ")"
+                                ));
+                            }
+                        }
 
                         for (DynamicRule rule : rules) {
                             if (!rule.isActive()) continue;

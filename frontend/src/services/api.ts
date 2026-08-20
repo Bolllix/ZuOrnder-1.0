@@ -71,6 +71,11 @@ export const api = {
     return res.data;
   },
 
+  updatePerson: async (projectId: string, personId: string, person: Person): Promise<Project> => {
+    const res = await axios.put(`${API_BASE}/projects/${projectId}/persons/${personId}`, person);
+    return res.data;
+  },
+
   deletePerson: async (projectId: string, personId: string): Promise<Project> => {
     const res = await axios.delete(`${API_BASE}/projects/${projectId}/persons/${personId}`);
     return res.data;

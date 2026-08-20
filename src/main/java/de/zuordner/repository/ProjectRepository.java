@@ -136,15 +136,15 @@ public class ProjectRepository {
 
         p.setPersons(persons);
 
-        // Buildings & Rooms setup (Total 22 beds)
-        Building b1 = new Building("Gebäude A (Senioren & Paare)");
-        Room r1 = new Room("Raum EG-01 (Senioren)", 0, false, b1.getName());
+        // Buildings & Rooms setup (Total 22 beds) - Neutral rooms dynamically assigned by optimization
+        Building b1 = new Building("Gebäude A (EG & OG)");
+        Room r1 = new Room("Raum EG-01", 0, false, b1.getName());
         r1.addSingleBed("Einzelbett EG-1");
         r1.addSingleBed("Einzelbett EG-2");
         r1.addSingleBed("Einzelbett EG-3");
         r1.addSingleBed("Einzelbett EG-4");
 
-        Room r2 = new Room("Raum 101 (Paarzimmer)", 1, false, b1.getName());
+        Room r2 = new Room("Raum 101", 1, false, b1.getName());
         r2.addDoubleBed("Doppelbett 1");
         r2.addDoubleBed("Doppelbett 2");
 
@@ -152,18 +152,17 @@ public class ProjectRepository {
         b1.getRooms().add(r2);
 
         Building b2 = new Building("Gebäude B (Jugendtrakt)");
-        Room r3 = new Room("Jungenzimmer 201", 1, false, b2.getName());
-        r3.setBoysRoom(true);
-        r3.addBunkBed("Jungs Hochbett 1");
-        r3.addBunkBed("Jungs Hochbett 2");
-        r3.addBunkBed("Jungs Hochbett 3");
-        r3.addBunkBed("Jungs Hochbett 4");
+        Room r3 = new Room("Zimmer 201", 1, false, b2.getName());
+        r3.addBunkBed("Hochbett 1");
+        r3.addBunkBed("Hochbett 2");
+        r3.addBunkBed("Hochbett 3");
+        r3.addBunkBed("Hochbett 4");
 
-        Room r4 = new Room("Mädchenzimmer 202", 1, true, b2.getName());
-        r4.addBunkBed("Mädels Hochbett 1");
-        r4.addBunkBed("Mädels Hochbett 2");
-        r4.addBunkBed("Mädels Hochbett 3");
-        r4.addBunkBed("Mädels Hochbett 4");
+        Room r4 = new Room("Zimmer 202", 1, false, b2.getName());
+        r4.addBunkBed("Hochbett 5");
+        r4.addBunkBed("Hochbett 6");
+        r4.addBunkBed("Hochbett 7");
+        r4.addBunkBed("Hochbett 8");
 
         b2.getRooms().add(r3);
         b2.getRooms().add(r4);
@@ -174,33 +173,18 @@ public class ProjectRepository {
         // Default Rules Configuration
         List<DynamicRule> rules = new ArrayList<>();
 
-        // Standard-Regel 1: HARTE GESCHLECHTERTRENNUNG (Männer im Mädchenzimmer verboten)
-        DynamicRule hardGirlsRoom = new DynamicRule(
-                "Harte Geschlechtertrennung (Mädchenzimmer)",
-                "Männliche Teilnehmer dürfen unter keinen Umständen im Mädchenzimmer untergebracht werden.",
+        // Standard-Regel 1: HARTE GESCHLECHTERTRENNUNG MIT PAAR-AUSNAHME
+        DynamicRule hardGenderRule = new DynamicRule(
+                "Harte Geschlechtertrennung (mit Paar-Ausnahme)",
+                "Unangemeldete Männer und Frauen dürfen nicht im selben Zimmer untergebracht werden. Angemeldete Paare (gleiche Paar-ID) bilden die einzige zulässige Ausnahme.",
                 RuleType.HARD,
                 TargetScope.ROOM_PERSON,
                 RuleAction.FORBID,
                 -999999
         );
-        hardGirlsRoom.addCondition(new Condition("person.gender", Operator.EQUALS, "maennlich"));
-        hardGirlsRoom.addCondition(new Condition("room.girlsRoom", Operator.EQUALS, true));
-        rules.add(hardGirlsRoom);
+        rules.add(hardGenderRule);
 
-        // Standard-Regel 2: HARTE GESCHLECHTERTRENNUNG (Frauen im Jungenzimmer verboten)
-        DynamicRule hardBoysRoom = new DynamicRule(
-                "Harte Geschlechtertrennung (Jungenzimmer)",
-                "Weibliche Teilnehmer dürfen unter keinen Umständen im Jungenzimmer untergebracht werden.",
-                RuleType.HARD,
-                TargetScope.ROOM_PERSON,
-                RuleAction.FORBID,
-                -999999
-        );
-        hardBoysRoom.addCondition(new Condition("person.gender", Operator.EQUALS, "weiblich"));
-        hardBoysRoom.addCondition(new Condition("room.boysRoom", Operator.EQUALS, true));
-        rules.add(hardBoysRoom);
-
-        // Standard-Regel 3: HARTE REGEL: Senioren (>65 Jahre) nicht im oberen Hochbett
+        // Standard-Regel 2: HARTE REGEL: Senioren (>65 Jahre) nicht im oberen Hochbett
         DynamicRule seniorTopBunkRule = new DynamicRule(
                 "Senioren nicht im oberen Hochbett",
                 "Personen ab 65 Jahren dürfen aus Sicherheitsgründen nicht im oberen Hochbett schlafen.",
@@ -213,7 +197,7 @@ public class ProjectRepository {
         seniorTopBunkRule.addCondition(new Condition("bed.isTopBunk", Operator.EQUALS, true));
         rules.add(seniorTopBunkRule);
 
-        // Standard-Regel 4: WEICHE REGEL: Paare im selben Zimmer
+        // Standard-Regel 3: WEICHE REGEL: Paare im selben Zimmer
         DynamicRule coupleRule = new DynamicRule(
                 "Paare im selben Zimmer",
                 "Personen mit der gleichen Paar-ID sollen bevorzugt im selben Zimmer untergebracht werden (+50 Punkte).",
@@ -224,7 +208,7 @@ public class ProjectRepository {
         );
         rules.add(coupleRule);
 
-        // Standard-Regel 5: WEICHE REGEL: Gruppen im selben Zimmer
+        // Standard-Regel 4: WEICHE REGEL: Gruppen im selben Zimmer
         DynamicRule groupRule = new DynamicRule(
                 "Gruppenzusammenhalt im Zimmer",
                 "Personen der gleichen Gruppe sollen bevorzugt im selben Zimmer untergebracht werden (+20 Punkte).",

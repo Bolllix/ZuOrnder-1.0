@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import type { Project } from '../types';
+import type { Project, Person } from '../types';
 import { api } from '../services/api';
-import { Users, Plus, Search, User, Heart, Users2, Trash2 } from 'lucide-react';
+import { Users, Plus, Search, User, Heart, Users2, Trash2, Edit3, X, Check } from 'lucide-react';
 
 interface ParticipantManagerProps {
   project: Project;
@@ -11,14 +11,26 @@ interface ParticipantManagerProps {
 export const ParticipantManager: React.FC<ParticipantManagerProps> = ({ project, onProjectUpdate }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingPerson, setEditingPerson] = useState<Person | null>(null);
 
-  // New Participant Form
+  // New Participant Form State
   const [firstname, setFirstname] = useState('');
   const [lastname, setLastname] = useState('');
   const [gender, setGender] = useState('maennlich');
   const [age, setAge] = useState<number>(20);
   const [partnerId, setPartnerId] = useState('');
   const [groupId, setGroupId] = useState('');
+
+  // Edit Participant Form State
+  const [editFirstname, setEditFirstname] = useState('');
+  const [editLastname, setEditLastname] = useState('');
+  const [editGender, setEditGender] = useState('maennlich');
+  const [editAge, setEditAge] = useState<number>(20);
+  const [editPartnerId, setEditPartnerId] = useState('');
+  const [editGroupId, setEditGroupId] = useState('');
+  const [editDesiredFloor, setEditDesiredFloor] = useState<string>('');
+  const [editDesiredRoom, setEditDesiredRoom] = useState('');
+  const [editSpecialNeeds, setEditSpecialNeeds] = useState('');
 
   const handleAddPerson = async () => {
     if (!lastname.trim()) return;
@@ -43,7 +55,45 @@ export const ParticipantManager: React.FC<ParticipantManagerProps> = ({ project,
     }
   };
 
+  const handleOpenEditModal = (person: Person) => {
+    setEditingPerson(person);
+    setEditFirstname(person.firstname || '');
+    setEditLastname(person.lastname || '');
+    setEditGender(person.gender || 'maennlich');
+    setEditAge(person.age || 20);
+    setEditPartnerId(person.partnerId || '');
+    setEditGroupId(person.groupId || '');
+    setEditDesiredFloor(person.desiredFloor !== undefined && person.desiredFloor !== null ? String(person.desiredFloor) : '');
+    setEditDesiredRoom(person.desiredRoom || '');
+    setEditSpecialNeeds(person.specialNeeds || '');
+  };
+
+  const handleSaveEditedPerson = async () => {
+    if (!editingPerson || !editLastname.trim()) return;
+    try {
+      const updatedPersonPayload: Person = {
+        ...editingPerson,
+        firstname: editFirstname.trim(),
+        lastname: editLastname.trim(),
+        gender: editGender,
+        age: editAge,
+        partnerId: editPartnerId.trim() || undefined,
+        groupId: editGroupId.trim() || undefined,
+        desiredFloor: editDesiredFloor.trim() ? parseInt(editDesiredFloor) : undefined,
+        desiredRoom: editDesiredRoom.trim() || undefined,
+        specialNeeds: editSpecialNeeds.trim() || undefined,
+      };
+
+      const updatedProject = await api.updatePerson(project.id, editingPerson.id, updatedPersonPayload);
+      onProjectUpdate(updatedProject);
+      setEditingPerson(null);
+    } catch (e) {
+      alert('Fehler beim Aktualisieren des Teilnehmers.');
+    }
+  };
+
   const handleDeletePerson = async (id: string) => {
+    if (!confirm('Teilnehmer wirklich löschen?')) return;
     try {
       const updated = await api.deletePerson(project.id, id);
       onProjectUpdate(updated);
@@ -53,7 +103,7 @@ export const ParticipantManager: React.FC<ParticipantManagerProps> = ({ project,
   };
 
   const filteredPersons = project.persons.filter((p) => {
-    const full = `${p.firstname || ''} ${p.lastname || ''} ${p.groupId || ''}`.toLowerCase();
+    const full = `${p.firstname || ''} ${p.lastname || ''} ${p.groupId || ''} ${p.partnerId || ''}`.toLowerCase();
     return full.includes(searchTerm.toLowerCase());
   });
 
@@ -66,7 +116,7 @@ export const ParticipantManager: React.FC<ParticipantManagerProps> = ({ project,
             <Users className="w-7 h-7 text-indigo-400" /> Teilnehmerverwaltung
           </h2>
           <p className="text-slate-400 text-sm mt-1">
-            Gesamt: {project.persons.length} Teilnehmer ({project.persons.filter((p) => p.gender === 'weiblich').length} W, {project.persons.filter((p) => p.gender === 'maennlich').length} M)
+            Gesamt: {project.persons.length} Teilnehmer ({project.persons.filter((p) => p.gender === 'weiblich').length} W, {project.persons.filter((p) => p.gender === 'maennlich').length} M, {project.persons.filter((p) => p.partnerId).length} in Paaren)
           </p>
         </div>
 
@@ -86,7 +136,7 @@ export const ParticipantManager: React.FC<ParticipantManagerProps> = ({ project,
             onClick={() => setShowAddForm(!showAddForm)}
             className="flex items-center space-x-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg shadow-md transition"
           >
-            <Plus className="w-4 h-4" /> <span>Teilnehmer manuell anlegen</span>
+            <Plus className="w-4 h-4" /> <span>Teilnehmer anlegen</span>
           </button>
         </div>
       </div>
@@ -159,6 +209,130 @@ export const ParticipantManager: React.FC<ParticipantManagerProps> = ({ project,
         </div>
       )}
 
+      {/* Edit Modal */}
+      {editingPerson && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="glass-panel p-6 rounded-2xl border border-indigo-500/40 max-w-lg w-full space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-700/60 pb-3">
+              <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+                <Edit3 className="w-5 h-5 text-indigo-400" /> Teilnehmer bearbeiten
+              </h3>
+              <button onClick={() => setEditingPerson(null)} className="p-1 text-slate-400 hover:text-slate-200">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Vorname</label>
+                <input
+                  type="text"
+                  value={editFirstname}
+                  onChange={(e) => setEditFirstname(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Nachname *</label>
+                <input
+                  type="text"
+                  value={editLastname}
+                  onChange={(e) => setEditLastname(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Geschlecht</label>
+                <select
+                  value={editGender}
+                  onChange={(e) => setEditGender(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-xs"
+                >
+                  <option value="maennlich">männlich</option>
+                  <option value="weiblich">weiblich</option>
+                  <option value="divers">divers</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Alter</label>
+                <input
+                  type="number"
+                  value={editAge}
+                  onChange={(e) => setEditAge(parseInt(e.target.value) || 0)}
+                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Paar-ID (z.B. P1, P2)</label>
+                <input
+                  type="text"
+                  placeholder="Gleiche ID für Paare"
+                  value={editPartnerId}
+                  onChange={(e) => setEditPartnerId(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Gruppe / Klasse</label>
+                <input
+                  type="text"
+                  placeholder="z.B. Gruppe 1"
+                  value={editGroupId}
+                  onChange={(e) => setEditGroupId(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Wunsch-Etage</label>
+                <input
+                  type="text"
+                  placeholder="z.B. 0 für EG"
+                  value={editDesiredFloor}
+                  onChange={(e) => setEditDesiredFloor(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Wunsch-Zimmer</label>
+                <input
+                  type="text"
+                  placeholder="z.B. Raum 101"
+                  value={editDesiredRoom}
+                  onChange={(e) => setEditDesiredRoom(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-xs"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">Besondere Anforderungen / Anmerkungen</label>
+              <input
+                type="text"
+                placeholder="z.B. Unteres Bett benötigt (Asthma, Rollstuhl)"
+                value={editSpecialNeeds}
+                onChange={(e) => setEditSpecialNeeds(e.target.value)}
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-xs"
+              />
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-3 border-t border-slate-800">
+              <button
+                onClick={() => setEditingPerson(null)}
+                className="px-4 py-2 bg-slate-800 text-slate-400 text-xs rounded-lg"
+              >
+                Abbrechen
+              </button>
+              <button
+                onClick={handleSaveEditedPerson}
+                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg flex items-center gap-1.5"
+              >
+                <Check className="w-4 h-4" /> <span>Änderungen speichern</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Participant List Table */}
       <div className="glass-panel rounded-2xl overflow-hidden border border-slate-800">
         <table className="w-full text-left text-sm text-slate-300">
@@ -190,8 +364,8 @@ export const ParticipantManager: React.FC<ParticipantManagerProps> = ({ project,
                   <td className="px-4 py-3 font-mono">{p.age} Jahre</td>
                   <td className="px-4 py-3">
                     {p.partnerId ? (
-                      <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                        <Heart className="w-3 h-3" /> {p.partnerId}
+                      <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 font-medium">
+                        <Heart className="w-3 h-3 text-rose-400" /> {p.partnerId}
                       </span>
                     ) : (
                       <span className="text-slate-600">-</span>
@@ -199,20 +373,30 @@ export const ParticipantManager: React.FC<ParticipantManagerProps> = ({ project,
                   </td>
                   <td className="px-4 py-3">
                     {p.groupId ? (
-                      <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                        <Users2 className="w-3 h-3" /> {p.groupId}
+                      <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-medium">
+                        <Users2 className="w-3 h-3 text-indigo-400" /> {p.groupId}
                       </span>
                     ) : (
                       <span className="text-slate-600">-</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => handleDeletePerson(p.id)}
-                      className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center justify-end space-x-2">
+                      <button
+                        onClick={() => handleOpenEditModal(p)}
+                        title="Teilnehmer bearbeiten"
+                        className="p-1.5 text-slate-400 hover:text-indigo-300 hover:bg-slate-800 rounded-lg transition"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeletePerson(p.id)}
+                        title="Teilnehmer löschen"
+                        className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
