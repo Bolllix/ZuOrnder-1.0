@@ -21,7 +21,14 @@ public class ProjectRepository {
 
     public ProjectRepository() {
         this.objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-        this.storageDir = Paths.get("data", "projects");
+        
+        String appData = System.getenv("APPDATA");
+        if (appData != null && !appData.trim().isEmpty()) {
+            this.storageDir = Paths.get(appData, "ZuORDNER", "data", "projects");
+        } else {
+            this.storageDir = Paths.get("data", "projects");
+        }
+
         initStorage();
         loadProjectsFromDisk();
 
