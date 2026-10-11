@@ -1,19 +1,23 @@
 import React from 'react';
-import type { Project } from '../types';
-import { Building2, Users, FileSpreadsheet, SlidersHorizontal, Sparkles, FolderOpen } from 'lucide-react';
+import type { Project, SystemVersionInfo } from '../types';
+import { Building2, Users, FileSpreadsheet, SlidersHorizontal, Sparkles, FolderOpen, ArrowUpCircle } from 'lucide-react';
 
 interface NavbarProps {
   currentProject: Project | null;
   activeTab: string;
   setActiveTab: (tab: string) => void;
   onOpenProjectModal: () => void;
+  versionInfo?: SystemVersionInfo | null;
+  onOpenUpdateModal?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   currentProject,
   activeTab,
   setActiveTab,
-  onOpenProjectModal
+  onOpenProjectModal,
+  versionInfo,
+  onOpenUpdateModal
 }) => {
   const tabs = [
     { id: 'buildings', label: 'Gebäude & Betten', icon: Building2, count: currentProject?.buildings?.length || 0 },
@@ -49,34 +53,58 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           </div>
 
-          {/* Navigation Tabs */}
-          <nav className="flex items-center space-x-1">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                    isActive
-                      ? tab.highlight
-                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
-                        : 'bg-slate-800 text-indigo-400 border border-indigo-500/30'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-                  }`}
-                >
-                  <Icon className={`w-4 h-4 ${isActive ? (tab.highlight ? 'text-white' : 'text-indigo-400') : 'text-slate-400'}`} />
-                  <span>{tab.label}</span>
-                  {tab.count !== undefined && (
-                    <span className={`ml-1.5 px-1.5 py-0.5 text-xs rounded-full ${isActive ? 'bg-indigo-500/30 text-indigo-200' : 'bg-slate-800 text-slate-400'}`}>
-                      {tab.count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </nav>
+          {/* Navigation Tabs & Update Button */}
+          <div className="flex items-center space-x-2">
+            <nav className="flex items-center space-x-1">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                      isActive
+                        ? tab.highlight
+                          ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
+                          : 'bg-slate-800 text-indigo-400 border border-indigo-500/30'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                    }`}
+                  >
+                    <Icon className={`w-4 h-4 ${isActive ? (tab.highlight ? 'text-white' : 'text-indigo-400') : 'text-slate-400'}`} />
+                    <span>{tab.label}</span>
+                    {tab.count !== undefined && (
+                      <span className={`ml-1.5 px-1.5 py-0.5 text-xs rounded-full ${isActive ? 'bg-indigo-500/30 text-indigo-200' : 'bg-slate-800 text-slate-400'}`}>
+                        {tab.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+
+            <div className="h-5 w-px bg-slate-800 mx-1 hidden sm:block" />
+
+            {/* Version & Update Button */}
+            <button
+              onClick={onOpenUpdateModal}
+              title={versionInfo?.updateAvailable ? 'Neues Update verfügbar! Klicken zum Aktualisieren' : 'ZuORDNER Software-Version'}
+              className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                versionInfo?.updateAvailable
+                  ? 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 animate-pulse shadow-sm shadow-amber-500/20'
+                  : 'bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700/60'
+              }`}
+            >
+              {versionInfo?.updateAvailable ? (
+                <>
+                  <ArrowUpCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span className="font-semibold">Update v{versionInfo.latestVersion}</span>
+                </>
+              ) : (
+                <span className="font-mono text-[11px] text-slate-400">v{versionInfo?.currentVersion || '1.1.0'}</span>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </header>

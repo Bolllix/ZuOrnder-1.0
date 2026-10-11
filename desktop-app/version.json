@@ -1,0 +1,6 @@
+{
+  "version": "1.1.0",
+  "buildDate": "2026-10-11",
+  "notes": "Geschlechtertrennung und Paare entkoppelt, neues intuitives Regelsystem (Vermeiden vs. Erfüllen), automatische 1-Klick Desktop-Updates",
+  "jarUrl": "https://raw.githubusercontent.com/Bolllix/ZuOrnder-1.0/main/desktop-app/ZuORDNER-Desktop/programm/zuordner-app.jar"
+}

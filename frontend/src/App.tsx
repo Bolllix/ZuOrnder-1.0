@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import type { Project } from './types';
+import type { Project, SystemVersionInfo } from './types';
 import { api } from './services/api';
 import { Navbar } from './components/Navbar';
 import { BuildingManager } from './components/BuildingManager';
@@ -8,12 +8,15 @@ import { ImportWizard } from './components/ImportWizard';
 import { RuleEditor } from './components/RuleEditor';
 import { AssignmentDashboard } from './components/AssignmentDashboard';
 import { ProjectSelectorModal } from './components/ProjectSelectorModal';
+import { UpdateModal } from './components/UpdateModal';
 
 export const App: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [activeTab, setActiveTab] = useState<string>('assignment');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [versionInfo, setVersionInfo] = useState<SystemVersionInfo | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchProjects = async () => {
@@ -38,8 +41,18 @@ export const App: React.FC = () => {
     }
   };
 
+  const fetchVersionInfo = async () => {
+    try {
+      const v = await api.getVersionInfo();
+      setVersionInfo(v);
+    } catch (e) {
+      console.error('Fehler beim Laden der Versionsdaten:', e);
+    }
+  };
+
   useEffect(() => {
     fetchProjects();
+    fetchVersionInfo();
   }, []);
 
   const handleProjectUpdate = (updated: Project) => {
@@ -63,6 +76,8 @@ export const App: React.FC = () => {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onOpenProjectModal={() => setIsModalOpen(true)}
+        versionInfo={versionInfo}
+        onOpenUpdateModal={() => setIsUpdateModalOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -125,6 +140,14 @@ export const App: React.FC = () => {
           onProjectDeleted={handleProjectDeleted}
         />
       )}
+
+      {/* Update & Version Modal */}
+      <UpdateModal
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+        initialInfo={versionInfo}
+        onRefreshInfo={fetchVersionInfo}
+      />
     </div>
   );
 };

@@ -119,3 +119,22 @@ export interface ImportValidationResult {
   errors: string[];
   totalRowsProcessed: number;
 }
+
+export interface SystemVersionInfo {
+  currentVersion: string;
+  latestVersion: string;
+  updateAvailable: boolean;
+  releaseNotes?: string;
+  releaseDate?: string;
+  downloadUrl?: string;
+  isDesktop: boolean;
+  isJarRunning: boolean;
+  offline?: boolean;
+}
+
+export interface UpdateStatusInfo {
+  inProgress: boolean;
+  progressPercent: number;
+  step: 'IDLE' | 'DOWNLOADING' | 'RESTARTING' | 'ERROR' | 'COMPLETE';
+  errorMessage?: string;
+}

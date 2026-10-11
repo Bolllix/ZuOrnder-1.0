@@ -164,4 +164,20 @@ export const api = {
     link.remove();
     window.URL.revokeObjectURL(url);
   },
+
+  // System & Update Management
+  getVersionInfo: async (): Promise<import('../types').SystemVersionInfo> => {
+    const res = await axios.get(`${API_BASE}/system/version`);
+    return res.data;
+  },
+
+  triggerUpdate: async (): Promise<{ status: string; message: string }> => {
+    const res = await axios.post(`${API_BASE}/system/update`);
+    return res.data;
+  },
+
+  getUpdateStatus: async (): Promise<import('../types').UpdateStatusInfo> => {
+    const res = await axios.get(`${API_BASE}/system/update-status`);
+    return res.data;
+  },
 };

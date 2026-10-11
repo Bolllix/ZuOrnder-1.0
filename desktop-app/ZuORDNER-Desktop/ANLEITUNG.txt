@@ -5,18 +5,27 @@
 1. Programm starten:
    Mache einfach einen Doppelklick auf "ZuORDNER starten.vbs".
    Die Anwendung startet im Hintergrund und öffnet sich
-   automatisch in deinem Webbrowser.
+   automatisch in deinem Webbrowser (unter http://localhost:8080).
 
 2. Desktop-Symbol anlegen (optional):
    Mache einen Doppelklick auf "Desktop-Verknuepfung erstellen.vbs".
-   Danach hast du ein direktes ZuORDNER-Symbol auf deinem Desktop.
+   Danach hast du ein direktes ZuORDNER-Symbol auf deinem Windows-Desktop.
 
-3. Dauerhafte Speicherung:
+3. Einfaches Aktualisieren (Updates):
+   Wenn eine neue Version verfügbar ist, kannst du sie auf zwei Wegen laden:
+   a) Direkt in der App: Klicke oben rechts in der Menüleiste auf
+      "Update verfügbar" -> "Jetzt automatisch aktualisieren".
+   b) Im Ordner: Doppelklick auf "ZuORDNER aktualisieren.vbs".
+   Die neue Version wird automatisch geladen, ohne dass du eine
+   neue ZIP-Datei herunterladen oder entpacken musst!
+
+4. Dauerhafte Speicherung:
    Alle deine Gebäude, Räume, Teilnehmer und Projekte werden
    dauerhaft und sicher lokal auf deinem Computer gespeichert:
    (unter C:\Users\<DeinName>\AppData\Roaming\ZuORDNER\data\)
+   Auch bei Updates gehen deine Daten niemals verloren.
 
-4. Excel-Listen:
+5. Excel-Listen:
    Du kannst Teilnehmerlisten als Excel- oder CSV-Datei jederzeit
    über den Button "Excel/CSV Import" direkt in dein Programm laden.
 
