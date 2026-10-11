@@ -210,6 +210,9 @@ public class RuleEngine {
             case "person.desiredroom":
             case "desiredroom":
                 return person != null ? person.getDesiredRoom() : null;
+            case "person.specialneeds":
+            case "specialneeds":
+                return person != null ? person.getSpecialNeeds() : null;
             case "bed.bedtype":
             case "bedtype":
                 return bed != null ? bed.getBedType().name() : null;
