@@ -60,6 +60,26 @@ export const api = {
     return res.data;
   },
 
+  // Building Templates & Reusable Buildings
+  getBuildingTemplates: async (): Promise<Array<{ id: string; name: string; source: string; roomCount: number; bedCount: number; building: Building }>> => {
+    const res = await axios.get(`${API_BASE}/building-templates`);
+    return res.data;
+  },
+
+  saveBuildingTemplate: async (building: Building): Promise<Building> => {
+    const res = await axios.post(`${API_BASE}/building-templates`, building);
+    return res.data;
+  },
+
+  deleteBuildingTemplate: async (templateId: string): Promise<void> => {
+    await axios.delete(`${API_BASE}/building-templates/${templateId}`);
+  },
+
+  importBuildingToProject: async (projectId: string, sourceBuilding: Building): Promise<Project> => {
+    const res = await axios.post(`${API_BASE}/projects/${projectId}/buildings/import-template`, sourceBuilding);
+    return res.data;
+  },
+
   // Persons
   addPerson: async (projectId: string, person: Partial<Person>): Promise<Project> => {
     const res = await axios.post(`${API_BASE}/projects/${projectId}/persons`, person);

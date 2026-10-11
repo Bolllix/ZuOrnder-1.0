@@ -20,16 +20,19 @@ echo 3. Paketieren des Spring Boot Backends (JAR Executable)...
 call .\tools\apache-maven-3.9.6\bin\mvn.cmd clean package -DskipTests
 
 echo.
-echo 4. Erstelle fertigen Desktop-Paket-Ordner...
-if not exist "ZuORDNER-Desktop-Paket" mkdir "ZuORDNER-Desktop-Paket"
-copy /Y "target\zuordner-backend-1.0.0-SNAPSHOT.jar" "ZuORDNER-Desktop-Paket\"
-copy /Y "Start_ZuORDNER.vbs" "ZuORDNER-Desktop-Paket\"
-copy /Y "Desktop_Shortcut_Erstellen.bat" "ZuORDNER-Desktop-Paket\"
+echo 4. Aktualisiere fertigen Desktop-Paket-Ordner...
+if not exist "ZuORDNER-Desktop\programm" mkdir "ZuORDNER-Desktop\programm"
+copy /Y "target\zuordner-backend-1.0.0-SNAPSHOT.jar" "ZuORDNER-Desktop\programm\zuordner-app.jar"
+
+echo.
+echo 5. Erstelle ZIP-Archiv fuer einfachen Download/Versand...
+powershell -Command "Compress-Archive -Path 'ZuORDNER-Desktop/*' -DestinationPath 'ZuORDNER-Desktop.zip' -Force"
 
 echo.
 echo =======================================================
-echo FERTIG! Der Ordner 'ZuORDNER-Desktop-Paket' wurde erfolgreich erstellt.
-echo Du kannst diesen Ordner einfach deiner Mutter schicken!
+echo FERTIG! 
+echo Der Ordner 'ZuORDNER-Desktop' und 'ZuORDNER-Desktop.zip' wurden erstellt.
+echo Du kannst deiner Mutter einfach die ZIP-Datei oder den Ordner schicken!
 echo =======================================================
 echo.
 pause

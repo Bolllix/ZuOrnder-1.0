@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
-import type { Project, BedType } from '../types';
+import type { Project, BedType, Bed, Building } from '../types';
 import { api } from '../services/api';
-import { Building2, Plus, Bed as BedIcon, Trash2, AlertCircle } from 'lucide-react';
+import { Building2, Plus, Bed as BedIcon, Trash2, AlertCircle, Bookmark, Check, FolderDown, X, Copy } from 'lucide-react';
 
 interface BuildingManagerProps {
   project: Project;
@@ -16,6 +16,13 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(
     project.buildings.length > 0 ? project.buildings[0].id : null
   );
+
+  // Template / Reusable Buildings State
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [availableTemplates, setAvailableTemplates] = useState<Array<{ id: string; name: string; source: string; roomCount: number; bedCount: number; building: Building }>>([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [savedTemplateSuccessId, setSavedTemplateSuccessId] = useState<string | null>(null);
+  const [importingId, setImportingId] = useState<string | null>(null);
 
   // New Room Form State
   const [newRoomName, setNewRoomName] = useState('');
@@ -64,6 +71,57 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
     }
   };
 
+  // Template / Reusable Buildings Handlers
+  const handleOpenTemplateModal = async () => {
+    setShowTemplateModal(true);
+    setLoadingTemplates(true);
+    try {
+      const list = await api.getBuildingTemplates();
+      setAvailableTemplates(list);
+    } catch (e) {
+      alert('Fehler beim Laden der Gebäude-Vorlagen.');
+    } finally {
+      setLoadingTemplates(false);
+    }
+  };
+
+  const handleSaveAsTemplate = async (building: Building) => {
+    try {
+      await api.saveBuildingTemplate(building);
+      setSavedTemplateSuccessId(building.id);
+      setTimeout(() => setSavedTemplateSuccessId(null), 3500);
+    } catch (e) {
+      alert('Fehler beim Speichern der Vorlage.');
+    }
+  };
+
+  const handleImportBuilding = async (item: { id: string; building: Building }) => {
+    setImportingId(item.id);
+    try {
+      const updated = await api.importBuildingToProject(project.id, item.building);
+      onProjectUpdate(updated);
+      setShowTemplateModal(false);
+      if (updated.buildings.length > 0) {
+        setSelectedBuildingId(updated.buildings[updated.buildings.length - 1].id);
+      }
+    } catch (e) {
+      alert('Fehler beim Übernehmen des Gebäudes.');
+    } finally {
+      setImportingId(null);
+    }
+  };
+
+  const handleDeleteTemplate = async (templateId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm('Möchten Sie diese Gebäude-Vorlage wirklich aus der Bibliothek löschen?')) return;
+    try {
+      await api.deleteBuildingTemplate(templateId);
+      setAvailableTemplates(prev => prev.filter(t => t.id !== templateId));
+    } catch (e) {
+      alert('Fehler beim Löschen der Vorlage.');
+    }
+  };
+
   const handleAddRoom = async () => {
     if (!selectedBuildingId || !newRoomName.trim()) return;
     try {
@@ -108,24 +166,25 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
   const handleAddSingleBed = async () => {
     if (!selectedBuildingId || !addingBedRoomId || !singleBedName.trim()) return;
     try {
-      const bedPayload = {
+      const bedPayload: Partial<Bed> = {
         name: singleBedName.trim(),
         bedType: singleBedType,
       };
-      const updatedProject = await api.addBed(project.id, selectedBuildingId, addingBedRoomId, bedPayload);
-      onProjectUpdate(updatedProject);
-      setSingleBedName('');
+
+      const updated = await api.addBed(project.id, selectedBuildingId, addingBedRoomId, bedPayload);
+      onProjectUpdate(updated);
       setAddingBedRoomId(null);
+      setSingleBedName('');
     } catch (e) {
       alert('Fehler beim Hinzufügen des Betts.');
     }
   };
 
-  const handleDeleteBed = async (_buildingId: string, roomId: string, bedId: string) => {
-    if (!selectedBuildingId) return;
+  const handleDeleteBed = async (buildingId: string, roomId: string, bedId: string, bedName: string) => {
+    if (!confirm(`Bett '${bedName}' wirklich löschen?`)) return;
     try {
-      const updatedProject = await api.deleteBed(project.id, selectedBuildingId, roomId, bedId);
-      onProjectUpdate(updatedProject);
+      const updated = await api.deleteBed(project.id, buildingId, roomId, bedId);
+      onProjectUpdate(updated);
     } catch (e) {
       alert('Fehler beim Löschen des Betts.');
     }
@@ -136,70 +195,95 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
             <Building2 className="w-7 h-7 text-indigo-400" /> Gebäude- & Bettenverwaltung
           </h2>
           <p className="text-slate-400 text-sm mt-1">
-            Gebäude, Räume und einzelne Betten konfigurieren oder löschen.
+            Gebäude, Räume und einzelne Betten konfigurieren oder aus bestehenden Vorlagen übernehmen.
           </p>
         </div>
 
-        {/* Add Building Form */}
-        <div className="flex flex-col items-end space-y-1 w-full sm:w-auto">
-          <div className="flex items-center space-x-2 w-full sm:w-auto">
-            <input
-              ref={buildingInputRef}
-              type="text"
-              placeholder="Gebäudename (z.B. Haupthaus, Haus A)"
-              value={newBuildingName}
-              onChange={(e) => {
-                setNewBuildingName(e.target.value);
-                if (e.target.value.trim()) setBuildingNameError(null);
-              }}
-              onKeyDown={(e) => e.key === 'Enter' && handleAddBuilding()}
-              className={`px-3 py-2 bg-slate-800 border rounded-lg text-slate-200 text-sm focus:outline-none transition w-full sm:w-64 ${
-                buildingNameError ? 'border-rose-500 ring-2 ring-rose-500/30' : 'border-slate-700 focus:border-indigo-500'
-              }`}
-            />
-            <button
-              onClick={handleAddBuilding}
-              className="flex items-center space-x-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-lg shadow-md shadow-indigo-500/20 transition whitespace-nowrap"
-            >
-              <Plus className="w-4 h-4" /> <span>Gebäude anlegen</span>
-            </button>
-          </div>
+        {/* Action Buttons: Add Building or Import from Template */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full lg:w-auto">
+          <button
+            onClick={handleOpenTemplateModal}
+            className="flex items-center justify-center space-x-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-indigo-300 hover:text-indigo-200 border border-indigo-500/30 text-sm font-semibold rounded-lg shadow transition whitespace-nowrap"
+          >
+            <FolderDown className="w-4 h-4 text-indigo-400" />
+            <span>Aus Vorlage / anderem Projekt</span>
+          </button>
 
-          {buildingNameError ? (
-            <span className="text-xs font-semibold text-rose-400 flex items-center gap-1">
-              <AlertCircle className="w-3.5 h-3.5" /> {buildingNameError}
-            </span>
-          ) : (
-            <span className="text-[11px] text-slate-500">Name eingeben & "Gebäude anlegen" klicken.</span>
-          )}
+          <div className="flex flex-col items-end space-y-1 w-full sm:w-auto">
+            <div className="flex items-center space-x-2 w-full sm:w-auto">
+              <input
+                ref={buildingInputRef}
+                type="text"
+                placeholder="Neuer Gebäudename..."
+                value={newBuildingName}
+                onChange={(e) => {
+                  setNewBuildingName(e.target.value);
+                  if (e.target.value.trim()) setBuildingNameError(null);
+                }}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddBuilding()}
+                className={`px-3 py-2 bg-slate-800 border rounded-lg text-slate-200 text-sm focus:outline-none transition w-full sm:w-56 ${
+                  buildingNameError ? 'border-rose-500 ring-2 ring-rose-500/30' : 'border-slate-700 focus:border-indigo-500'
+                }`}
+              />
+              <button
+                onClick={handleAddBuilding}
+                className="flex items-center space-x-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-lg shadow-md shadow-indigo-500/20 transition whitespace-nowrap"
+              >
+                <Plus className="w-4 h-4" /> <span>Anlegen</span>
+              </button>
+            </div>
+
+            {buildingNameError && (
+              <span className="text-xs font-semibold text-rose-400 flex items-center gap-1">
+                <AlertCircle className="w-3.5 h-3.5" /> {buildingNameError}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Buildings Tabs & Main Section */}
       {project.buildings.length === 0 ? (
-        <div className="p-12 glass-panel rounded-2xl text-center space-y-4 border border-slate-800">
+        <div className="p-12 glass-panel rounded-2xl text-center space-y-5 border border-slate-800">
           <div className="w-16 h-16 bg-indigo-600/20 rounded-full flex items-center justify-center mx-auto text-indigo-400">
             <Building2 className="w-8 h-8" />
           </div>
-          <h3 className="text-lg font-bold text-slate-200">Noch keine Gebäude vorhanden</h3>
-          <p className="text-slate-400 text-xs max-w-md mx-auto">
-            Trage oben rechts den Namen deines ersten Gebäudes ein (z. B. <i>Haupthaus</i> oder <i>Gebäude A</i>) und klicke auf <b>"Gebäude anlegen"</b>.
-          </p>
+          <div>
+            <h3 className="text-lg font-bold text-slate-200">Noch keine Gebäude in diesem Projekt</h3>
+            <p className="text-slate-400 text-xs max-w-md mx-auto mt-1">
+              Erstelle ein neues Gebäude oder übernimm ein bereits vorhandenes Gebäude aus einem deiner anderen Projekte oder Vorlagen!
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <button
+              onClick={handleOpenTemplateModal}
+              className="flex items-center space-x-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-500/20 transition"
+            >
+              <FolderDown className="w-4 h-4" />
+              <span>Gebäude aus Vorlage / anderem Projekt laden</span>
+            </button>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Building Selection List */}
           <div className="space-y-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 px-1">Gebäude</h3>
+            <div className="flex items-center justify-between px-1">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Gebäude ({project.buildings.length})</h3>
+            </div>
+
             {project.buildings.map((b) => {
               const isSelected = b.id === selectedBuildingId;
               const totalBeds = b.rooms.reduce((acc, r) => acc + r.beds.length, 0);
+              const isSaved = savedTemplateSuccessId === b.id;
+
               return (
                 <div
                   key={b.id}
@@ -220,13 +304,31 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
                     </div>
                   </button>
 
-                  <button
-                    onClick={() => handleDeleteBuilding(b.id, b.name)}
-                    title="Gebäude löschen"
-                    className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-slate-700/50 rounded-lg transition ml-2"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center space-x-1 ml-2">
+                    {/* Save as Template Bookmark Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSaveAsTemplate(b);
+                      }}
+                      title="Als Vorlage für andere Projekte in Bibliothek speichern"
+                      className={`p-1.5 rounded-lg transition ${
+                        isSaved
+                          ? 'text-emerald-400 bg-emerald-500/20'
+                          : 'text-slate-500 hover:text-indigo-400 hover:bg-slate-700/50'
+                      }`}
+                    >
+                      {isSaved ? <Check className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
+                    </button>
+
+                    <button
+                      onClick={() => handleDeleteBuilding(b.id, b.name)}
+                      title="Gebäude löschen"
+                      className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-slate-700/50 rounded-lg transition"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -249,35 +351,37 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
                         placeholder="z.B. Raum 101"
                         value={newRoomName}
                         onChange={(e) => setNewRoomName(e.target.value)}
-                        className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-sm"
+                        className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:border-indigo-500"
                       />
                     </div>
+
                     <div>
-                      <label className="block text-xs text-slate-400 mb-1">Etage (0 = EG, 1 = 1.OG)</label>
+                      <label className="block text-xs text-slate-400 mb-1">Stockwerk / Etage</label>
                       <input
                         type="number"
                         value={newRoomFloor}
                         onChange={(e) => setNewRoomFloor(parseInt(e.target.value) || 0)}
-                        className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-sm"
+                        className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:border-indigo-500"
                       />
                     </div>
+
                     <div>
-                      <label className="block text-xs text-slate-400 mb-1">Start-Betten-Set</label>
+                      <label className="block text-xs text-slate-400 mb-1">Betten-Vorkonfiguration</label>
                       <select
                         value={bedSetupType}
                         onChange={(e: any) => setBedSetupType(e.target.value)}
-                        className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-sm"
+                        className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-sm focus:outline-none focus:border-indigo-500"
                       >
-                        <option value="BUNK">1x Etagenbett (2 Betten)</option>
-                        <option value="SINGLE">2x Einzelbett</option>
+                        <option value="BUNK">1x Etagenbett (2 Plätze)</option>
+                        <option value="SINGLE">2x Einzelbetten (2 Plätze)</option>
                         <option value="DOUBLE">1x Doppelbett (2 Plätze)</option>
-                        <option value="CUSTOM">Leerer Raum (Betten einzeln hinzufügen)</option>
+                        <option value="CUSTOM">Leer (Betten einzeln hinzufügen)</option>
                       </select>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-800">
-                    <div className="flex items-center space-x-4">
+                  <div className="flex items-center justify-between pt-2">
+                    <div className="flex items-center space-x-6">
                       <label className="flex items-center space-x-2 text-xs text-slate-300 cursor-pointer">
                         <input
                           type="checkbox"
@@ -286,9 +390,9 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
                             setIsGirlsRoom(e.target.checked);
                             if (e.target.checked) setIsBoysRoom(false);
                           }}
-                          className="w-4 h-4 rounded text-pink-600 bg-slate-900 border-slate-700 focus:ring-pink-500"
+                          className="rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-0"
                         />
-                        <span>Mädchenzimmer</span>
+                        <span>Mädchenzimmer (Präferenz)</span>
                       </label>
 
                       <label className="flex items-center space-x-2 text-xs text-slate-300 cursor-pointer">
@@ -299,143 +403,235 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
                             setIsBoysRoom(e.target.checked);
                             if (e.target.checked) setIsGirlsRoom(false);
                           }}
-                          className="w-4 h-4 rounded text-blue-600 bg-slate-900 border-slate-700 focus:ring-blue-500"
+                          className="rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-0"
                         />
-                        <span>Jungenzimmer</span>
+                        <span>Jungenzimmer (Präferenz)</span>
                       </label>
                     </div>
 
                     <button
                       onClick={handleAddRoom}
-                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg shadow-md transition"
+                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg shadow transition"
                     >
                       Raum speichern
                     </button>
                   </div>
                 </div>
 
-                {/* Single Bed Add Drawer */}
-                {addingBedRoomId && (
-                  <div className="glass-panel p-4 rounded-xl border border-indigo-500/40 space-y-3 bg-indigo-950/30">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-300">
-                      Einzelnes Bett hinzufügen
+                {/* Rooms List */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
+                      Räume in '{selectedBuilding.name}' ({selectedBuilding.rooms.length})
                     </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <input
-                        type="text"
-                        placeholder="Bettbezeichnung (z.B. Bett 3)"
-                        value={singleBedName}
-                        onChange={(e) => setSingleBedName(e.target.value)}
-                        className="px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-xs"
-                      />
-                      <select
-                        value={singleBedType}
-                        onChange={(e: any) => setSingleBedType(e.target.value)}
-                        className="px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 text-xs"
-                      >
-                        <option value="SINGLE">Einzelbett</option>
-                        <option value="TOP_BUNK">Hochbett Oben</option>
-                        <option value="BOTTOM_BUNK">Hochbett Unten</option>
-                        <option value="DOUBLE">Doppelbett</option>
-                        <option value="SOFA">Schlafsofa</option>
-                        <option value="OTHER">Sonstige Bettart</option>
-                      </select>
-
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={handleAddSingleBed}
-                          className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium rounded-lg"
-                        >
-                          Bett hinzufügen
-                        </button>
-                        <button
-                          onClick={() => setAddingBedRoomId(null)}
-                          className="px-3 py-1.5 bg-slate-800 text-slate-400 text-xs rounded-lg"
-                        >
-                          Abbrechen
-                        </button>
-                      </div>
-                    </div>
                   </div>
-                )}
 
-                {/* Rooms List Display */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {selectedBuilding.rooms.map((room) => (
-                    <div key={room.id} className="glass-card p-4 rounded-xl space-y-3 border border-slate-800">
-                      <div className="flex items-center justify-between border-b border-slate-700/50 pb-2">
-                        <div>
-                          <span className="font-semibold text-slate-100">{room.name}</span>
-                          <span className="ml-2 text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400">
-                            Etage {room.floor}
-                          </span>
-                          {room.girlsRoom && (
-                            <span className="ml-2 text-xs px-2 py-0.5 rounded bg-pink-500/20 text-pink-300 font-medium">
-                              Mädchenzimmer
-                            </span>
-                          )}
-                          {room.boysRoom && (
-                            <span className="ml-2 text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 font-medium">
-                              Jungenzimmer
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => {
-                              setAddingBedRoomId(room.id);
-                              setSingleBedName(`Bett ${room.beds.length + 1}`);
-                            }}
-                            className="text-xs px-2 py-1 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 rounded-lg flex items-center gap-1 transition"
-                          >
-                            <Plus className="w-3 h-3" /> Bett
-                          </button>
-                          <button
-                            onClick={() => handleDeleteRoom(selectedBuilding.id, room.id, room.name)}
-                            className="p-1 text-slate-500 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Individual Beds */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                        {room.beds.length === 0 ? (
-                          <div className="col-span-2 text-xs text-slate-500 italic text-center py-2">
-                            Keine Betten vorhanden. Klicken Sie auf "+ Bett".
-                          </div>
-                        ) : (
-                          room.beds.map((bed) => (
-                            <div
-                              key={bed.id}
-                              className="p-2 rounded-lg bg-slate-900/80 border border-slate-800 text-xs flex items-center justify-between text-slate-300"
-                            >
-                              <div className="flex items-center space-x-2 truncate">
-                                <BedIcon className={`w-4 h-4 flex-shrink-0 ${bed.bedType === 'TOP_BUNK' ? 'text-amber-400' : 'text-indigo-400'}`} />
-                                <div className="truncate">
-                                  <div className="font-medium text-slate-200 truncate">{bed.name}</div>
-                                  <div className="text-[10px] text-slate-500">{bed.bedType}</div>
-                                </div>
-                              </div>
-
-                              <button
-                                onClick={() => handleDeleteBed(selectedBuilding.id, room.id, bed.id)}
-                                title="Bett entfernen"
-                                className="p-1 text-slate-600 hover:text-rose-400 hover:bg-slate-800 rounded transition"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          ))
-                        )}
-                      </div>
+                  {selectedBuilding.rooms.length === 0 ? (
+                    <div className="p-8 border border-dashed border-slate-800 rounded-2xl text-center text-slate-500 text-xs">
+                      Noch keine Räume in diesem Gebäude vorhanden. Lege oben den ersten Raum an.
                     </div>
-                  ))}
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {selectedBuilding.rooms.map((room) => (
+                        <div key={room.id} className="glass-panel p-4 rounded-xl border border-slate-800 space-y-3">
+                          <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                            <div>
+                              <div className="font-semibold text-slate-100 text-sm flex items-center space-x-2">
+                                <span>{room.name}</span>
+                                {room.girlsRoom && (
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-pink-500/20 text-pink-300 border border-pink-500/30">
+                                    Mädchen
+                                  </span>
+                                )}
+                                {room.boysRoom && (
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                                    Jungen
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-xs text-slate-500">Etage {room.floor} • {room.beds.length} Betten</span>
+                            </div>
+
+                            <button
+                              onClick={() => handleDeleteRoom(selectedBuilding.id, room.id, room.name)}
+                              title="Raum löschen"
+                              className="p-1 text-slate-500 hover:text-rose-400 transition"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          {/* Beds in Room */}
+                          <div className="space-y-1.5">
+                            {room.beds.map((bed) => (
+                              <div
+                                key={bed.id}
+                                className="flex items-center justify-between p-2 rounded-lg bg-slate-900/60 border border-slate-800/60 text-xs"
+                              >
+                                <div className="flex items-center space-x-2">
+                                  <BedIcon className="w-3.5 h-3.5 text-indigo-400" />
+                                  <span className="text-slate-300">{bed.name}</span>
+                                  <span className="text-[10px] text-slate-500 font-mono">({bed.bedType})</span>
+                                </div>
+                                <button
+                                  onClick={() => handleDeleteBed(selectedBuilding.id, room.id, bed.id, bed.name)}
+                                  title="Bett entfernen"
+                                  className="text-slate-600 hover:text-rose-400 transition p-0.5"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Add Single Bed Button / Form */}
+                          {addingBedRoomId === room.id ? (
+                            <div className="p-2.5 bg-slate-900 rounded-lg border border-indigo-500/40 space-y-2 mt-2">
+                              <div className="text-[11px] font-semibold text-indigo-300">Neues Einzelbett hinzufügen:</div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="Bettname (z.B. Bett 3)"
+                                  value={singleBedName}
+                                  onChange={(e) => setSingleBedName(e.target.value)}
+                                  className="px-2 py-1 bg-slate-800 border border-slate-700 rounded text-slate-200 text-xs"
+                                />
+                                <select
+                                  value={singleBedType}
+                                  onChange={(e: any) => setSingleBedType(e.target.value)}
+                                  className="px-2 py-1 bg-slate-800 border border-slate-700 rounded text-slate-200 text-xs"
+                                >
+                                  <option value="SINGLE">Einzelbett</option>
+                                  <option value="DOUBLE">Doppelbett</option>
+                                  <option value="TOP_BUNK">Hochbett (Oben)</option>
+                                  <option value="BOTTOM_BUNK">Hochbett (Unten)</option>
+                                  <option value="SOFA_BED">Schlafsofa</option>
+                                </select>
+                              </div>
+                              <div className="flex justify-end space-x-2">
+                                <button
+                                  onClick={() => setAddingBedRoomId(null)}
+                                  className="px-2 py-1 bg-slate-800 text-slate-400 hover:text-slate-200 text-[11px] rounded"
+                                >
+                                  Abbrechen
+                                </button>
+                                <button
+                                  onClick={handleAddSingleBed}
+                                  className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-semibold rounded"
+                                >
+                                  Bett hinzufügen
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                setAddingBedRoomId(room.id);
+                                setSingleBedName(`Bett ${room.beds.length + 1}`);
+                              }}
+                              className="w-full py-1.5 border border-dashed border-slate-700 hover:border-indigo-500 text-slate-400 hover:text-indigo-400 rounded-lg text-xs flex items-center justify-center space-x-1 transition"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                              <span>Bett hinzufügen</span>
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Import Building from Template or Another Project */}
+      {showTemplateModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="glass-panel p-6 rounded-2xl border border-indigo-500/40 max-w-2xl w-full space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-700/60 pb-3">
+              <div className="flex items-center gap-2">
+                <FolderDown className="w-5 h-5 text-indigo-400" />
+                <h3 className="text-lg font-bold text-slate-100">Gebäude aus Vorlage oder anderem Projekt übernehmen</h3>
+              </div>
+              <button onClick={() => setShowTemplateModal(false)} className="p-1 text-slate-400 hover:text-slate-200 rounded-lg transition">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-400">
+              Wähle ein gespeichertes Gebäude aus. Alle Zimmer und Betten werden 1:1 in dein aktuelles Projekt <b>{project.name}</b> kopiert!
+            </p>
+
+            {loadingTemplates ? (
+              <div className="py-12 text-center text-slate-400 text-xs">
+                Lade verfügbare Gebäude...
+              </div>
+            ) : availableTemplates.length === 0 ? (
+              <div className="py-10 text-center space-y-2 border border-dashed border-slate-800 rounded-xl">
+                <div className="text-slate-400 text-sm font-medium">Keine Gebäude-Vorlagen gefunden</div>
+                <p className="text-slate-500 text-xs max-w-sm mx-auto">
+                  Du kannst in jedem deiner Projekte ein Gebäude mit dem Lesezeichen-Symbol (🔖) als dauerhafte Vorlage in der Bibliothek speichern.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2.5 max-h-80 overflow-y-auto pr-1">
+                {availableTemplates.map((item, idx) => (
+                  <div
+                    key={`${item.id}-${idx}`}
+                    className="p-3.5 bg-slate-900/80 hover:bg-slate-800/80 border border-slate-800 hover:border-indigo-500/50 rounded-xl transition flex items-center justify-between group"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 rounded-lg bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-bold">
+                        <Building2 className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-slate-200 text-sm flex items-center gap-2">
+                          <span>{item.name}</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-indigo-300 border border-slate-700">
+                            {item.source}
+                          </span>
+                        </div>
+                        <div className="text-xs text-slate-400 mt-0.5">
+                          {item.roomCount} Räume • {item.bedCount} Betten
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      {item.source.includes('Bibliothek') && (
+                        <button
+                          onClick={(e) => handleDeleteTemplate(item.id, e)}
+                          title="Aus Bibliothek löschen"
+                          className="p-2 text-slate-500 hover:text-rose-400 hover:bg-slate-800 rounded-lg transition"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+
+                      <button
+                        disabled={importingId === item.id}
+                        onClick={() => handleImportBuilding(item)}
+                        className="flex items-center space-x-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg shadow transition disabled:opacity-50"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>{importingId === item.id ? 'Wird kopiert...' : 'Übernehmen'}</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex justify-end pt-2 border-t border-slate-800">
+              <button
+                onClick={() => setShowTemplateModal(false)}
+                className="px-4 py-2 bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-medium rounded-lg transition"
+              >
+                Schließen
+              </button>
+            </div>
           </div>
         </div>
       )}
