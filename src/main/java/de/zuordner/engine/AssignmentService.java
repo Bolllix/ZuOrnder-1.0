@@ -112,17 +112,22 @@ public class AssignmentService {
                             boolean isCouple = (person.getPartnerId() != null && !person.getPartnerId().trim().isEmpty() &&
                                     person.getPartnerId().equalsIgnoreCase(otherPerson.getPartnerId()));
 
-                            // REQUIREMENT 3: Hard Gender Segregation with Couple Exception
-                            if (hasHardGenderRule && differentGender && !isCouple) {
+                            boolean hasActiveCoupleRule = rules.stream().anyMatch(r ->
+                                    r.isActive() && (r.getTargetScope() == TargetScope.PAIR_CO_LOCATION || r.getName().toLowerCase().contains("paar"))
+                            );
+
+                            // Geschlechtertrennung: Unangemeldete verschiedene Geschlechter verbieten.
+                            // Paare bilden nur dann eine Ausnahme, wenn die Paar-Regel aktiv ist.
+                            if (hasHardGenderRule && differentGender && (!isCouple || !hasActiveCoupleRule)) {
                                 hardViolations++;
                                 score += RuleEngine.FORBIDDEN_SCORE;
                                 totalScore += RuleEngine.FORBIDDEN_SCORE;
                                 explanations.add(new ScoreExplanation(
                                         "hard-gender-segregation",
-                                        "Harte Geschlechtertrennung verletzt",
+                                        "Geschlechtertrennung verletzt",
                                         RuleEngine.FORBIDDEN_SCORE,
                                         RuleType.HARD,
-                                        "Gemischtgeschlechtliche Unterbringung im selben Zimmer ohne Paar-ID verboten (" + otherPerson.getFullName() + ")"
+                                        "Gemischtgeschlechtliche Unterbringung im selben Zimmer verboten (" + otherPerson.getFullName() + ")"
                                 ));
                             }
                         }

@@ -17,6 +17,7 @@ import {
   Bed,
   CheckCircle2,
   XCircle,
+  AlertTriangle,
   X
 } from 'lucide-react';
 
@@ -47,7 +48,7 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
   const [whereFloorVal, setWhereFloorVal] = useState<number>(0);
 
   // 3. WIE BEWERTEN? (Gewichtung)
-  const [ratingType, setRatingType] = useState<'FORBID' | 'VERY_HIGH' | 'HIGH' | 'LOW' | 'AVOID' | 'CUSTOM'>('FORBID');
+  const [ratingType, setRatingType] = useState<'FORBID' | 'AVOID_STRONG' | 'AVOID' | 'VERY_HIGH' | 'HIGH' | 'LOW' | 'CUSTOM'>('FORBID');
   const [customWeight, setCustomWeight] = useState<number>(25);
 
   // Standard-Karten Helper
@@ -85,8 +86,8 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
       if (type === 'GENDER') {
         newRulePayload = {
           id: '',
-          name: 'Harte Geschlechtertrennung (mit Paar-Ausnahme)',
-          description: 'Männer und Frauen in getrennten Zimmern. Paare mit gleicher Paar-ID bilden die Ausnahme.',
+          name: 'Geschlechtertrennung im Zimmer',
+          description: 'Männer und Frauen dürfen nicht im selben Zimmer schlafen (getrennte Zimmer). Wenn inaktiv, sind gemischte Zimmer für alle erlaubt.',
           active: true,
           ruleType: 'HARD',
           targetScope: 'ROOM_PERSON',
@@ -97,8 +98,8 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
       } else if (type === 'COUPLES') {
         newRulePayload = {
           id: '',
-          name: 'Paare bevorzugt im selben Zimmer',
-          description: 'Personen mit der gleichen Paar-ID bevorzugt im selben Zimmer unterbringen (+50 Pkt).',
+          name: 'Paare im selben Zimmer',
+          description: 'Angemeldete Paare mit gleicher Paar-ID werden bevorzugt im selben Zimmer / Doppelbett untergebracht (funktioniert mit und ohne Geschlechtertrennung).',
           active: true,
           ruleType: 'SOFT',
           targetScope: 'PAIR_CO_LOCATION',
@@ -218,10 +219,11 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
     const ruleType: RuleType = ratingType === 'FORBID' ? 'HARD' : 'SOFT';
     let weight = 0;
     if (ratingType === 'FORBID') weight = -999999;
+    else if (ratingType === 'AVOID_STRONG') weight = -50;
+    else if (ratingType === 'AVOID') weight = -25;
     else if (ratingType === 'VERY_HIGH') weight = 50;
     else if (ratingType === 'HIGH') weight = 25;
     else if (ratingType === 'LOW') weight = 10;
-    else if (ratingType === 'AVOID') weight = -25;
     else if (ratingType === 'CUSTOM') weight = customWeight;
 
     const payload: DynamicRule = {
@@ -294,14 +296,15 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
     else if (whereType === 'SAME_ROOM') where = 'zusammen ins selbe Zimmer';
 
     let rating = '';
-    if (ratingType === 'FORBID') rating = 'STRIKT VERBOTEN (Ausschluss)';
-    else if (ratingType === 'VERY_HIGH') rating = 'SEHR STARK BEVORZUGT (+50 Punkte)';
-    else if (ratingType === 'HIGH') rating = 'BEVORZUGT (+25 Punkte)';
-    else if (ratingType === 'LOW') rating = 'MIT BONUS BELOHNT (+10 Punkte)';
-    else if (ratingType === 'AVOID') rating = 'VERMIEDEN (-25 Punkte Abzug)';
-    else if (ratingType === 'CUSTOM') rating = `MIT ${customWeight > 0 ? '+' : ''}${customWeight} PUNKTEN BEWERTET`;
+    if (ratingType === 'FORBID') rating = 'STRIKT VERBOTEN (Ausgeschlossen)';
+    else if (ratingType === 'AVOID_STRONG') rating = 'DRINGEND VERMIEDEN (Sehr hohe Strafe)';
+    else if (ratingType === 'AVOID') rating = 'EHER VERMIEDEN (Leichte Strafe)';
+    else if (ratingType === 'VERY_HIGH') rating = 'UNBEDINGT ANGESTREBT (Höchste Priorität)';
+    else if (ratingType === 'HIGH') rating = 'BEVORZUGT (Normale Priorität)';
+    else if (ratingType === 'LOW') rating = 'MIT LEICHTEM BONUS BELOHNT';
+    else if (ratingType === 'CUSTOM') rating = `MIT ${customWeight > 0 ? '+' : ''}${customWeight} PUNKTEN GEWICHTET`;
 
-    return `WENN ${who}, DANN wird die Belegung ${where} ${rating}.`;
+    return `WENN ${who}, DANN soll die Belegung ${where} ${rating} werden.`;
   };
 
   // Trennung: Standard-Regeln vs. Benutzerdefinierte Regeln
@@ -358,7 +361,7 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
                 <div>
                   <h4 className="font-semibold text-sm text-slate-100">Geschlechtertrennung im Zimmer</h4>
                   <span className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                    Striktes Verbot für gemischte Zimmer
+                    Strikte Regel (Getrennte Zimmer)
                   </span>
                 </div>
               </div>
@@ -371,7 +374,7 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
               </button>
             </div>
             <p className="text-xs text-slate-400 mt-2.5">
-              Jungen und Mädchen werden strikt in getrennte Zimmer verteilt. <b>Ausnahme:</b> Angemeldete Paare mit gleicher Paar-ID dürfen zusammenliegen.
+              Männer und Frauen dürfen nicht im selben Zimmer schlafen (getrennte Zimmer). Wenn inaktiv, sind gemischte Zimmer für alle erlaubt.
             </p>
           </div>
 
@@ -385,7 +388,7 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
                 <div>
                   <h4 className="font-semibold text-sm text-slate-100">Paare im selben Zimmer</h4>
                   <span className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                    Hohe Priorität (+50 Punkte)
+                    Hohe Priorität (Wunsch)
                   </span>
                 </div>
               </div>
@@ -398,7 +401,7 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
               </button>
             </div>
             <p className="text-xs text-slate-400 mt-2.5">
-              Personen mit übereinstimmender Paar-ID werden bevorzugt im selben Zimmer (oder Doppelbett) untergebracht.
+              Angemeldete Paare mit gleicher Paar-ID werden bevorzugt im selben Zimmer / Doppelbett untergebracht (funktioniert mit und ohne Geschlechtertrennung).
             </p>
           </div>
 
@@ -412,7 +415,7 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
                 <div>
                   <h4 className="font-semibold text-sm text-slate-100">Gruppenzusammenhalt im Zimmer</h4>
                   <span className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                    Bevorzugen (+20 Punkte)
+                    Bevorzugen (Wunsch)
                   </span>
                 </div>
               </div>
@@ -505,10 +508,14 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
                           <span className="font-semibold text-slate-100 text-sm">{r.name}</span>
                           <span
                             className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-                              isHard ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+                              isHard
+                                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                                : r.weight < 0
+                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
                             }`}
                           >
-                            {isHard ? 'Strikte Regel (Verbot)' : `Wunsch (${r.weight > 0 ? '+' : ''}${r.weight} Pkt)`}
+                            {isHard ? 'Strikte Regel (Verbot)' : r.weight < 0 ? 'Vermeiden' : 'Bevorzugen (Wunsch)'}
                           </span>
                         </div>
                         <p className="text-xs text-slate-400 mt-0.5">{r.description || 'Keine Beschreibung'}</p>
@@ -546,7 +553,7 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
                       </div>
                       <div>
                         <span className="text-slate-400">Regel-Typ: </span>
-                        <span className="font-mono text-slate-200">{r.ruleType === 'HARD' ? 'Strikte Ausschlussregel (-999999 Pkt)' : `Weiche Präferenz (+${r.weight} Punkte)`}</span>
+                        <span className="font-mono text-slate-200">{r.ruleType === 'HARD' ? 'Strikter Ausschluss (Verbot)' : r.weight < 0 ? 'Unerwünschtes Szenario (Strafe)' : 'Gewünschtes Szenario (Ziel)'}</span>
                       </div>
                       {r.conditions && r.conditions.length > 0 && (
                         <div>
@@ -713,94 +720,123 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
               </div>
             </div>
 
-            {/* SCHRITT 3: WIE BEWERTEN? */}
-            <div className="p-4 bg-slate-900/90 rounded-xl border border-slate-800 space-y-3">
+            {/* SCHRITT 3: ZIEL / BEWERTUNG */}
+            <div className="p-4 bg-slate-900/90 rounded-xl border border-slate-800 space-y-4">
               <span className="text-xs font-bold text-indigo-300 uppercase tracking-wider block flex items-center gap-1.5">
                 <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[11px] flex items-center justify-center font-bold">3</span>
-                DANN... Wie soll der Algorithmus das bewerten? (Gewichtung)
+                DANN... Was ist das Ziel für dieses Szenario?
               </span>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setRatingType('FORBID')}
-                  className={`p-3 rounded-xl border text-left transition ${
-                    ratingType === 'FORBID'
-                      ? 'bg-rose-500/20 border-rose-500 text-rose-200 font-bold'
-                      : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-800'
-                  }`}
-                >
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <XCircle className="w-4 h-4 text-rose-400" />
-                    <span>Strikte Regel</span>
-                  </div>
-                  <div className="text-[10px] text-slate-400 mt-1">Ausgeschlossen (Verbot)</div>
-                </button>
+              {/* GRUPPE 1: VERMEIDEN / VERBIETEN */}
+              <div className="space-y-2">
+                <span className="text-[11px] font-bold text-rose-300 uppercase tracking-wider block flex items-center gap-1">
+                  🛑 Szenario soll VERHINDERT / VERMIEDEN werden:
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setRatingType('FORBID')}
+                    className={`p-3 rounded-xl border text-left transition ${
+                      ratingType === 'FORBID'
+                        ? 'bg-rose-500/20 border-rose-500 text-rose-200 font-bold'
+                        : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 text-xs">
+                      <XCircle className="w-4 h-4 text-rose-400" />
+                      <span>Strikt verbieten</span>
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-1">Niemals zulassen (Verbot)</div>
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => setRatingType('VERY_HIGH')}
-                  className={`p-3 rounded-xl border text-left transition ${
-                    ratingType === 'VERY_HIGH'
-                      ? 'bg-emerald-500/20 border-emerald-500 text-emerald-200 font-bold'
-                      : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-800'
-                  }`}
-                >
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    <span>Sehr wichtig</span>
-                  </div>
-                  <div className="text-[10px] text-slate-400 mt-1">+50 Punkte Bonus</div>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setRatingType('AVOID_STRONG')}
+                    className={`p-3 rounded-xl border text-left transition ${
+                      ratingType === 'AVOID_STRONG'
+                        ? 'bg-rose-500/20 border-rose-500 text-rose-200 font-bold'
+                        : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 text-xs">
+                      <AlertTriangle className="w-4 h-4 text-amber-400" />
+                      <span>Dringend vermeiden</span>
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-1">Höchste Priorität zum Vermeiden</div>
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => setRatingType('HIGH')}
-                  className={`p-3 rounded-xl border text-left transition ${
-                    ratingType === 'HIGH'
-                      ? 'bg-indigo-500/20 border-indigo-500 text-indigo-200 font-bold'
-                      : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-800'
-                  }`}
-                >
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <CheckCircle2 className="w-4 h-4 text-indigo-400" />
-                    <span>Wichtig</span>
-                  </div>
-                  <div className="text-[10px] text-slate-400 mt-1">+25 Punkte Bonus</div>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setRatingType('AVOID')}
+                    className={`p-3 rounded-xl border text-left transition ${
+                      ratingType === 'AVOID'
+                        ? 'bg-amber-500/20 border-amber-500 text-amber-200 font-bold'
+                        : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 text-xs">
+                      <AlertTriangle className="w-4 h-4 text-amber-400" />
+                      <span>Eher vermeiden</span>
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-1">Leichte Vermeidung</div>
+                  </button>
+                </div>
               </div>
 
-              {/* Zusätzliche Optionen */}
-              <div className="flex items-center space-x-3 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setRatingType('AVOID')}
-                  className={`px-3 py-1.5 rounded-lg border text-xs transition ${
-                    ratingType === 'AVOID' ? 'bg-amber-500/20 border-amber-500 text-amber-200 font-bold' : 'bg-slate-800 border-slate-700 text-slate-400'
-                  }`}
-                >
-                  Eher vermeiden (-25 Pkt)
-                </button>
+              {/* GRUPPE 2: ERFÜLLEN / WÜNSCHE */}
+              <div className="space-y-2 pt-2 border-t border-slate-800">
+                <span className="text-[11px] font-bold text-emerald-300 uppercase tracking-wider block flex items-center gap-1">
+                  🎯 Szenario soll ERFÜLLT / BEVORZUGT werden:
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setRatingType('VERY_HIGH')}
+                    className={`p-3 rounded-xl border text-left transition ${
+                      ratingType === 'VERY_HIGH'
+                        ? 'bg-emerald-500/20 border-emerald-500 text-emerald-200 font-bold'
+                        : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 text-xs">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      <span>Unbedingt anstreben</span>
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-1">Höchste Priorität (Wunsch)</div>
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => setRatingType('CUSTOM')}
-                  className={`px-3 py-1.5 rounded-lg border text-xs transition ${
-                    ratingType === 'CUSTOM' ? 'bg-indigo-500/20 border-indigo-500 text-indigo-200 font-bold' : 'bg-slate-800 border-slate-700 text-slate-400'
-                  }`}
-                >
-                  Freie Punkteingabe
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setRatingType('HIGH')}
+                    className={`p-3 rounded-xl border text-left transition ${
+                      ratingType === 'HIGH'
+                        ? 'bg-indigo-500/20 border-indigo-500 text-indigo-200 font-bold'
+                        : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 text-xs">
+                      <CheckCircle2 className="w-4 h-4 text-indigo-400" />
+                      <span>Bevorzugen</span>
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-1">Mittlere Priorität (Wunsch)</div>
+                  </button>
 
-                {ratingType === 'CUSTOM' && (
-                  <input
-                    type="number"
-                    value={customWeight}
-                    onChange={(e) => setCustomWeight(parseInt(e.target.value) || 0)}
-                    placeholder="z.B. 35"
-                    className="w-24 px-2 py-1 bg-slate-800 border border-slate-700 rounded text-slate-200 text-xs font-mono"
-                  />
-                )}
+                  <button
+                    type="button"
+                    onClick={() => setRatingType('LOW')}
+                    className={`p-3 rounded-xl border text-left transition ${
+                      ratingType === 'LOW'
+                        ? 'bg-indigo-500/20 border-indigo-500 text-indigo-200 font-bold'
+                        : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 text-xs">
+                      <CheckCircle2 className="w-4 h-4 text-indigo-400" />
+                      <span>Leichter Bonus</span>
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-1">Geringe Priorität</div>
+                  </button>
+                </div>
               </div>
             </div>
 
