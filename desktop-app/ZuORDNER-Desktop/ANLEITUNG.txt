@@ -1,0 +1,24 @@
+===================================================
+ ZuORDNER - Lokale Windows Desktop-Version
+===================================================
+
+1. Programm starten:
+   Mache einfach einen Doppelklick auf "ZuORDNER starten.vbs".
+   Die Anwendung startet im Hintergrund und öffnet sich
+   automatisch in deinem Webbrowser.
+
+2. Desktop-Symbol anlegen (optional):
+   Mache einen Doppelklick auf "Desktop-Verknuepfung erstellen.vbs".
+   Danach hast du ein direktes ZuORDNER-Symbol auf deinem Desktop.
+
+3. Dauerhafte Speicherung:
+   Alle deine Gebäude, Räume, Teilnehmer und Projekte werden
+   dauerhaft und sicher lokal auf deinem Computer gespeichert:
+   (unter C:\Users\<DeinName>\AppData\Roaming\ZuORDNER\data\)
+
+4. Excel-Listen:
+   Du kannst Teilnehmerlisten als Excel- oder CSV-Datei jederzeit
+   über den Button "Excel/CSV Import" direkt in dein Programm laden.
+
+Viel Freude mit ZuORDNER!
+===================================================
