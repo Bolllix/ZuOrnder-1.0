@@ -25,10 +25,10 @@ import java.util.UUID;
  *
  * Fehlerbehebung in Version 2.0:
  * Das Frontend hat neue Regeln früher mit der leeren ID "" geschickt. Dadurch
- * hatten mehrere Regeln dieselbe ID, und "Regel '' ändern" hat immer die
- * ERSTE dieser Regeln überschrieben – oft die falsche. Jetzt vergibt der
- * Server selbst eine eindeutige ID, wenn keine (oder eine schon benutzte)
- * mitgeschickt wird.
+ * hatten mehrere Regeln dieselbe (leere) ID, und eine solche Regel ließ sich
+ * danach nicht mehr ändern oder an-/ausschalten (die Adresse .../rules/ mit
+ * leerer ID beantwortet der Server mit einem Fehler). Jetzt vergibt der Server
+ * selbst eine eindeutige ID, wenn keine (oder eine schon benutzte) mitgeschickt wird.
  */
 @RestController
 @RequestMapping("/api/projects/{projectId}/rules")

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.zuordner.ZuordnerApplication;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.system.ApplicationHome;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -98,18 +99,33 @@ public class SystemController {
     /**
      * Findet heraus, aus welcher JAR-Datei das Programm gerade läuft.
      * Gibt null zurück, wenn es keine JAR ist (z.B. Start aus der Entwicklungsumgebung).
+     *
+     * Fehlerbehebung in Version 2.0: Früher wurde der Ort über
+     * getCodeSource().getLocation() bestimmt. Seit Spring Boot 3.2 ist das eine
+     * Adresse wie "jar:nested:/.../zuordner-app.jar/!BOOT-INF/classes/!/" – daraus
+     * lässt sich keine Datei machen. Dadurch wurde die JAR nie erkannt und der
+     * Knopf "Jetzt automatisch aktualisieren" nie angezeigt. ApplicationHome ist
+     * das Spring-Boot-Werkzeug genau für diese Aufgabe.
      */
     private File getRunningJarFile() {
         try {
-            URI uri = ZuordnerApplication.class.getProtectionDomain().getCodeSource().getLocation().toURI();
-            File file = new File(uri);
-            if (file.isFile() && file.getName().toLowerCase().endsWith(".jar")) {
-                return file;
+            File source = new ApplicationHome(ZuordnerApplication.class).getSource();
+            if (isJarFile(source)) {
+                return source.getAbsoluteFile();
+            }
+            // Zusätzliche Möglichkeit: Beim Start mit "java -jar <datei>" steht die Datei im Klassenpfad
+            File fromClassPath = new File(System.getProperty("java.class.path", ""));
+            if (isJarFile(fromClassPath)) {
+                return fromClassPath.getAbsoluteFile();
             }
         } catch (Exception e) {
             System.err.println("Konnte laufende JAR-Datei nicht ermitteln: " + e.getMessage());
         }
         return null;
+    }
+
+    private static boolean isJarFile(File file) {
+        return file != null && file.isFile() && file.getName().toLowerCase().endsWith(".jar");
     }
 
     /**

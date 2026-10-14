@@ -41,6 +41,14 @@ public class RuleEngine {
     public static final int FORBIDDEN_SCORE = -999999;
 
     /**
+     * Kleiner Zusatzbonus der Paar-Regel: Personen mit Paar-ID bekommen im
+     * Doppelbett diese Punkte extra. So landen Paare bevorzugt in Doppelbetten
+     * statt z.B. in zwei Einzelbetten (das Zusammensein im Zimmer zählt mit
+     * +50 pro Person aber deutlich mehr).
+     */
+    public static final int COUPLE_DOUBLE_BED_BONUS = 10;
+
+    /**
      * Vereinfachtes Geschlecht für die Geschlechtertrennung.
      * OTHER = divers, unbekannt oder leer – solche Personen werden von der
      * automatischen Geschlechtertrennung NICHT eingeschränkt (das kann die
@@ -152,8 +160,9 @@ public class RuleEngine {
 
     /**
      * Bewertet, wie gut eine Person in ein bestimmtes Bett passt.
-     * Geprüft werden alle aktiven Regeln vom Typ BED_PERSON und ROOM_PERSON
-     * sowie die Mädchen-/Jungenzimmer-Markierung (gehört zur Geschlechtertrennung).
+     * Geprüft werden alle aktiven Regeln vom Typ BED_PERSON und ROOM_PERSON,
+     * die Mädchen-/Jungenzimmer-Markierung (gehört zur Geschlechtertrennung)
+     * und der Doppelbett-Bonus der Paar-Regel.
      *
      * @param person  Die zu bewertende Person
      * @param bed     Das Zielbett
@@ -180,7 +189,14 @@ public class RuleEngine {
                 continue;
             }
 
-            // Regeln für Zimmernachbarn (Paare, Gruppen, ...) gehören nicht hierher
+            // Paar-Regel: kleiner Bonus fürs Doppelbett (das Zusammensein selbst
+            // wird bei den Zimmernachbarn bewertet, siehe evaluateRoommates)
+            if (scope == TargetScope.PAIR_CO_LOCATION) {
+                checkCoupleDoubleBed(rule, result, person, bed);
+                continue;
+            }
+
+            // Andere Regeln für Zimmernachbarn (Gruppen, ...) gehören nicht hierher
             if (scope.isRoommateScope()) {
                 continue;
             }
@@ -221,6 +237,22 @@ public class RuleEngine {
             result.addExplanation(new ScoreExplanation(
                     rule.getId(), rule.getName(), FORBIDDEN_SCORE, RuleType.HARD, "Harte Regel verletzt: " + reason));
         }
+    }
+
+    /**
+     * Teil der Paar-Regel: Personen mit Paar-ID bekommen im Doppelbett einen
+     * kleinen Bonus ({@link #COUPLE_DOUBLE_BED_BONUS}) – nur wenn die Paar-Regel
+     * Paare zusammen haben MÖCHTE (also kein Verbot und positive Punkte).
+     */
+    private void checkCoupleDoubleBed(DynamicRule rule, EvaluationResult result, Person person, Bed bed) {
+        boolean hasPartner = person.getPartnerId() != null && !person.getPartnerId().isBlank();
+        if (!hasPartner || bed.getBedType() != BedType.DOUBLE) return;
+        if (isForbidRule(rule) || signedPoints(rule) <= 0) return;
+        if (!evaluateConditions(rule.getConditions(), person, null, null)) return;
+
+        result.addScore(COUPLE_DOUBLE_BED_BONUS);
+        result.addExplanation(new ScoreExplanation(rule.getId(), rule.getName(), COUPLE_DOUBLE_BED_BONUS, RuleType.SOFT,
+                "Paar im Doppelbett (" + formatPoints(COUPLE_DOUBLE_BED_BONUS) + " Pkt)"));
     }
 
     /**

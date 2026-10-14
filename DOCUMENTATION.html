@@ -105,7 +105,7 @@
 
     <div class="header-banner">
         <h1>ZuORDNER – Technische Dokumentation & Code-Handbuch</h1>
-        <p>Systemarchitektur, Algorithmen, Dynamic Rule Engine & Frontend/Backend Entwicklerhandbuch</p>
+        <p>Version 2.0 – Systemarchitektur, Algorithmen, Dynamic Rule Engine & Frontend/Backend Entwicklerhandbuch</p>
     </div>
 
     <h2>1. Einleitung & Zielsetzung</h2>
@@ -120,13 +120,23 @@
         <li><strong>Flexible Datenverwaltung:</strong> Beliebige Gebäude, Etagen, Räume und Einzelbetten.</li>
         <li><strong>Dynamisches Regelsystem:</strong> Anpassung von Harte Verbote und Weiche Präferenzen ohne Code-Änderung.</li>
         <li><strong>6-Schritt Excel/CSV Import:</strong> Geführter Import mit manuellem Spaltenmapping.</li>
-        <li><strong>Mathematische Optimierung:</strong> Ungarischer Algorithmus (Kuhn-Munkres) für maximale Zufriedenheit in Millisekunden.</li>
+        <li><strong>Mathematische Optimierung:</strong> Ungarischer Algorithmus (Kuhn-Munkres) als Startlösung, danach lokale Suche, die auch Paare, Gruppen und Geschlechtertrennung berücksichtigt.</li>
     </ul>
+
+    <div class="box">
+        <strong>Neu in Version 2.0:</strong>
+        <ul>
+            <li>Die Standard-Regeln (Geschlechtertrennung, Paare, Gruppen, Senioren) haben einen festen Schlüssel (<code>standardKey</code>) und lassen sich <strong>unabhängig voneinander</strong> schalten. Vorher wurden sie über Wörter im Namen gesucht – der Paar-Schalter hat dadurch die Geschlechter-Regel umgeschaltet.</li>
+            <li>Neue Regeln bekommen vom Server eine eindeutige ID (vorher bekamen alle die leere ID und ließen sich danach nicht mehr umschalten).</li>
+            <li>Regeln für Zimmernachbarn (Paare, Gruppen, Geschlechtertrennung) beeinflussen jetzt wirklich die Verteilung (vorher wurden sie erst nachträglich ausgewertet).</li>
+            <li>Personen ohne Bett werden mit Grund angezeigt; alte Projektdateien werden beim Start automatisch repariert (mit Sicherheitskopie).</li>
+        </ul>
+    </div>
 
     <h2>2. Systemarchitektur & Data Flow</h2>
     <p>Das System ist nach dem modernen <strong>Decoupled Client-Server Prinzip</strong> aufgebaut:</p>
     <div class="box">
-        <strong>React 18 / TypeScript Web Frontend</strong> &lt;--- (REST / JSON) ---&gt; <strong>Spring Boot 3 Java Backend</strong>
+        <strong>React 19 / TypeScript Web Frontend</strong> &lt;--- (REST / JSON) ---&gt; <strong>Spring Boot 3 Java Backend</strong>
     </div>
     <table>
         <thead>
@@ -149,13 +159,13 @@
             </tr>
             <tr>
                 <td>Rule Engine</td>
-                <td>Java 25 Stream & Condition Engine</td>
+                <td>Java Condition Engine (läuft ab Java 17)</td>
                 <td>Bewertung von Personen, Räumen & Betten gegen dynamische WENN-Bedingungen.</td>
             </tr>
             <tr>
                 <td>Optimization Core</td>
-                <td>Kuhn-Munkres (Hungarian Solver)</td>
-                <td>Lösung des N x N bipartite Matching-Problems zur Maximierung des Scores.</td>
+                <td>Hungarian Solver + LocalSearchOptimizer</td>
+                <td>Startlösung per Kuhn-Munkres, danach Verbesserung mit Simulated Annealing und Hill Climbing (inkl. Zimmernachbar-Regeln).</td>
             </tr>
             <tr>
                 <td>Import Engine</td>
@@ -184,8 +194,16 @@
     </div>
     <p>Es wird zwischen zwei Regeltypen unterschieden:</p>
     <ul>
-        <li><span class="badge badge-hard">Harte Regel (HARD / FORBID)</span>: Bei Verletzung wird der Score auf <code>-999999</code> gesetzt. Die Zuordnung wird vom Ungarischen Solver ausgeschlossen.</li>
+        <li><span class="badge badge-hard">Harte Regel (HARD / FORBID)</span>: Bei Verletzung wird der Score auf <code>-999999</code> gesetzt. Eine solche Zuordnung wird nie gewählt – lieber bleibt eine Person ohne Bett (mit Begründung im Dashboard).</li>
         <li><span class="badge badge-soft">Weiche Regel (SOFT / PREFERENCE)</span>: Verleiht Punkteboni (z.B. <code>+50</code>) oder Punktabzüge (<code>-20</code>).</li>
+    </ul>
+    <p>Zusätzlich unterscheidet der Regel-Bezug (<code>TargetScope</code>):</p>
+    <ul>
+        <li><code>BED_PERSON</code> / <code>ROOM_PERSON</code>: eine Person und ihr Bett bzw. Raum (z.B. Senioren nicht ins obere Hochbett).</li>
+        <li><code>GENDER_SEPARATION</code>: Männer und Frauen nicht im selben Zimmer; markierte Mädchen-/Jungenzimmer nur für das jeweilige Geschlecht. Ausnahme: Paare, wenn die Paar-Regel aktiv ist. Divers/unbekannt wird nicht eingeschränkt.</li>
+        <li><code>PAIR_CO_LOCATION</code>: Paare (gleiche Paar-ID) zusammen, +50 Punkte pro Person, +10 im Doppelbett.</li>
+        <li><code>GROUP_CO_LOCATION</code>: Gruppen zusammen, +20 Punkte pro Gruppenmitglied im selben Zimmer.</li>
+        <li><code>CONDITION_CO_LOCATION</code>: alle Personen, auf die die WENN-Bedingungen zutreffen (z.B. Alter &gt; 65), zusammen.</li>
     </ul>
 
     <h3>B. Der Ungarische Algorithmus (Hungarian Solver)</h3>
@@ -198,6 +216,24 @@
         <code>Cost[i][j] = MaxScore - Score[i][j]</code> (Verbotene Felder erhalten <code>Cost = 1.000.000</code>).</li>
         <li><strong>Augmentierende Pfade:</strong> Die ungarische Reduktion findet in Millisekunden die Zuordnung, die die Gesamtsumme der Punkte aller Personen maximiert.</li>
     </ol>
+    <p>
+        <strong>Grenze:</strong> Der Ungarische Algorithmus bewertet jede Person nur zusammen mit IHREM Bett. Wer im selben
+        Zimmer landet, kann er nicht berücksichtigen. Seit Version 2.0 ist sein Ergebnis deshalb nur der Startpunkt.
+    </p>
+
+    <h3>C. Lokale Suche (LocalSearchOptimizer, neu in 2.0)</h3>
+    <p>Ausgehend von der Startlösung werden sehr viele kleine Änderungen ausprobiert (Person in freies Bett, zwei Personen tauschen, Person vorerst ohne Bett):</p>
+    <div class="box">
+        <strong>Gesamtpunktzahl:</strong><br>
+        <code>Σ Punkte(Person, Bett) + Σ Punkte(Zimmernachbarn) − 100.000 × (Personen ohne Bett)</code><br>
+        Harte Verstöße zählen −1.000.000. Rangfolge: keine Verstöße &gt; möglichst alle unterbringen &gt; möglichst viele Wunsch-Punkte.
+    </div>
+    <ol>
+        <li><strong>Simulated Annealing:</strong> Verbesserungen werden immer angenommen, kleine Verschlechterungen anfangs mit einer Wahrscheinlichkeit, die mit der "Temperatur" sinkt. So bleibt die Suche nicht in Sackgassen stecken. 20.000 Versuche pro Person (höchstens 10 Millionen).</li>
+        <li><strong>Hill Climbing:</strong> Am Ende werden systematisch alle Umzüge/Tausche geprüft, bis keine Verbesserung mehr möglich ist.</li>
+        <li><strong>Deterministisch:</strong> Fester Zufalls-Startwert – gleiche Eingabe ergibt gleiches Ergebnis.</li>
+    </ol>
+    <p>Gemessen: ca. 0,1 s für 30 Personen, 0,4 s für 100 Personen, 0,8 s für 200 Personen.</p>
 
     <h2>4. Entwickler-Handbuch: Wichtigste Klassen im Backend</h2>
 
@@ -216,14 +252,28 @@
         Orchestriert den Ablauf:
     </p>
     <pre>
-1. Matrix mit Scores aus RuleEngine befüllen
-2. Co-Location Boni für Paare (+50) und Gruppen (+20) berechnen
-3. HungarianSolver.solveMaxWeightMatching() aufrufen
-4. Transparente ScoreExplanation-Liste pro Person aufbauen
-5. Ergebnis-Objekt (AssignmentResult) mit unzugeordneten Personen/Betten zurückgeben
+1. Alle Betten und Räume einsammeln
+2. Tabelle Person x Bett aus der RuleEngine befüllen
+3. Tabelle Person x Person (Zimmernachbarn: Paare, Gruppen, Geschlechtertrennung)
+4. HungarianSolver.solveMaxWeightMatching() als Startlösung
+5. LocalSearchOptimizer.optimize() verbessert die Verteilung
+6. ScoreExplanation-Liste pro Person + Grund für jede Person ohne Bett
     </pre>
 
-    <h3>4. <code>TableMappingService.java</code></h3>
+    <h3>4. <code>LocalSearchOptimizer.java</code> (neu in 2.0)</h3>
+    <p>
+        Verbessert die Startlösung (siehe Abschnitt 3C). Berechnet Punkte-Änderungen nur für die betroffenen Räume (<code>delta()</code>) und ist dadurch sehr schnell.
+    </p>
+
+    <h3>5. <code>StandardRule.java</code> & <code>ProjectMigration.java</code> (neu in 2.0)</h3>
+    <p>
+        <code>StandardRule</code> definiert die 4 Standard-Regeln mit festem Schlüssel. Der Endpunkt
+        <code>PUT /api/projects/{id}/rules/standard/{key}</code> schaltet genau eine davon an oder aus.
+        <code>ProjectMigration</code> repariert beim Start alte Projektdateien (leere/doppelte Regel-IDs,
+        alte Geschlechter-Regel) und legt vorher eine Sicherheitskopie <code>*.json.v1-backup</code> an.
+    </p>
+
+    <h3>6. <code>TableMappingService.java</code></h3>
     <p>
         Entkoppeltes Interface zur Transformation von Rohdaten-Tabellen in strukturierte <code>Person</code>-Objekte. Ermöglicht den schnellen Austausch gegen eine KI-gestützte Spaltenerkennung in der Zukunft.
     </p>
@@ -258,12 +308,12 @@
             <tr>
                 <td><strong>RuleEditor</strong></td>
                 <td><code>RuleEditor.tsx</code></td>
-                <td>Regel-Editor zum Erstellen/Bearbeiten von WENN-DANN Regeln inkl. <strong>[Mehr Infos]</strong> Aufklapppanel.</td>
+                <td>4 unabhängige Standard-Schalter (über <code>standardKey</code>) mit Hinweis zum Zusammenspiel, plus Baukasten für eigene WENN-DANN Regeln mit Details-Ansicht.</td>
             </tr>
             <tr>
                 <td><strong>AssignmentDashboard</strong></td>
                 <td><code>AssignmentDashboard.tsx</code></td>
-                <td>Belegungsplan-Visualisierung mit Highscores und Erklärungs-Modal für jede Person.</td>
+                <td>Belegungsplan-Visualisierung mit Punkten, Erklärungs-Fenster für jede Person und Liste der Personen ohne Bett (mit Grund).</td>
             </tr>
             <tr>
                 <td><strong>ProjectSelectorModal</strong></td>
@@ -275,7 +325,7 @@
 
     <h2>6. Zusammenfassung & Ausblick</h2>
     <p>
-        Die Anwendung ist voll einsatzbereit, hochperformant (Berechnung unter 10ms) und extrem flexibel. Dank der sauberen Trennung von Frontend, REST API, Rule Engine und Import Pipeline kann das System in Zukunft problemlos erweitert werden (z.B. Anbindung an Google Sheets API oder ein KI-Modell zur automatischen Spaltenerkennung).
+        Die Anwendung ist voll einsatzbereit, schnell (unter einer Sekunde für bis zu 200 Personen) und extrem flexibel. Dank der sauberen Trennung von Frontend, REST API, Rule Engine und Import Pipeline kann das System in Zukunft problemlos erweitert werden (z.B. Anbindung an Google Sheets API oder ein KI-Modell zur automatischen Spaltenerkennung).
     </p>
 
 </body>

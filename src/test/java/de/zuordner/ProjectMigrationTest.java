@@ -37,14 +37,14 @@ class ProjectMigrationTest {
 
     @Test
     void doppelteRegelnAusDemAltenIdFehlerWerdenBereinigt() {
-        // So sah ein Projekt nach dem alten Fehler aus: Die Geschlechter-Regel wurde
-        // von der Paar-Regel überschrieben, und es gibt zwei Kopien der Paar-Regel.
-        // Die ERSTE Kopie ist die zuletzt geänderte (Updates trafen immer die erste "").
+        // Zwei identische Paar-Regeln mit leerer ID, wie sie das alte Frontend angelegt hat.
+        // Die Beschreibung enthält "Geschlechtertrennung" – deshalb hat die alte Version
+        // diese Regel auch auf der Geschlechtertrennungs-Karte angezeigt.
         String desc = "Angemeldete Paare mit gleicher Paar-ID werden bevorzugt im selben Zimmer / Doppelbett "
                 + "untergebracht (funktioniert mit und ohne Geschlechtertrennung).";
         Project project = new Project("Alt", "");
         project.getRules().add(legacyRule("Paare im selben Zimmer", desc, RuleType.SOFT,
-                TargetScope.PAIR_CO_LOCATION, RuleAction.ADD_POINTS, 50, false));
+                TargetScope.PAIR_CO_LOCATION, RuleAction.ADD_POINTS, 50, true));
         project.getRules().add(legacyRule("Paare im selben Zimmer", desc, RuleType.SOFT,
                 TargetScope.PAIR_CO_LOCATION, RuleAction.ADD_POINTS, 50, true));
 
@@ -54,7 +54,7 @@ class ProjectMigrationTest {
         DynamicRule couple = project.getRules().get(0);
         assertEquals(StandardRule.COUPLES_TOGETHER, couple.getStandardKey());
         assertFalse(couple.getId().isBlank());
-        assertFalse(couple.isActive(), "Der zuletzt gespeicherte Zustand (aus) bleibt erhalten");
+        assertTrue(couple.isActive());
         // Die Beschreibung enthält zwar "Geschlechtertrennung", es ist aber KEINE harte Regel
         assertNull(findByKey(project, StandardRule.GENDER_SEPARATION));
     }

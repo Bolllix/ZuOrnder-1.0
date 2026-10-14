@@ -80,9 +80,11 @@ class RoommateRulesAssignmentTest {
         assertEquals(0, result.getHardRuleViolationsCount());
         assertFalse(hasMixedNonCoupleRoom(project.getPersons(), result, true), "Keine gemischten Zimmer (außer Paare)");
 
-        // Beide Paare liegen jeweils zusammen
+        // Beide Paare liegen jeweils zusammen – und zwar in den Doppelzimmern
         assertEquals(rooms.get(personNamed(project, "Max").getId()), rooms.get(personNamed(project, "Erika").getId()));
         assertEquals(rooms.get(personNamed(project, "Felix").getId()), rooms.get(personNamed(project, "Lisa").getId()));
+        assertTrue(rooms.get(personNamed(project, "Max").getId()).startsWith("Doppelzimmer"));
+        assertTrue(rooms.get(personNamed(project, "Felix").getId()).startsWith("Doppelzimmer"));
 
         // Jungen- und Mädchengruppe jeweils komplett in einem Zimmer
         Set<String> boysRooms = new HashSet<>();

@@ -1,41 +1,40 @@
 # ZuORDNER – Webanwendung zur automatisierten Zimmer- & Bettenzuordnung
 
-Eine moderne, datengetriebene Webanwendung zur optimalen Verteilung von Teilnehmern auf verfügbare Räume und Betten in Jugendherbergen und Unterkünften.
+**Version 2.0.0** · Was ist neu? → [CHANGELOG.md](CHANGELOG.md)
+
+Eine datengetriebene Anwendung zur optimalen Verteilung von Teilnehmern auf verfügbare Räume und Betten in Jugendherbergen und Unterkünften. Läuft als Webanwendung oder als Windows-Desktop-Programm (Ordner `desktop-app/`).
 
 ---
 
 ## 🚀 Highlights & Kernfunktionen
 
 1. **Visuelle Gebäude- & Einzelbettenverwaltung**
-   * Verwalten von Gebäuden, Etagen, Räumen (z.B. Mädchenzimmer, Jungenzimmer) und einzelnen Betten (Einzelbett, Hochbett Oben/Unten, Doppelbett, Schlafsofa).
-   * Flexibles Hinzufügen oder Löschen einzelner Betten, Räume und kompletter Gebäude.
+   * Gebäude, Etagen, Räume (optional als Mädchen- oder Jungenzimmer markiert) und einzelne Betten (Einzelbett, Hochbett Oben/Unten, Doppelbett, Schlafsofa).
+   * Gebäude als Vorlage speichern und in anderen Projekten wiederverwenden.
 
-2. **Dynamische Rule Engine (Regel-Auswertung ohne Codeänderungen)**
-   * **Harte Regeln (HARD / FORBID)**: Absolute Verbote (z.B. *Senioren > 65 nicht ins obere Hochbett*, *Harte Geschlechtertrennung in Mädchen-/Jungenzimmern*).
-   * **Weiche Regeln (SOFT / PREFERENCES)**: Punkteboni/Abzüge (z.B. *Paare ins selbe Zimmer (+50 Pkt)*, *Gruppen zusammenhalten (+20 Pkt)*).
-   * **"Mehr Infos"-Button**: Klare Aufschlüsselung der Funktionsweise und WENN-Bedingungen jeder Regel in der Oberfläche.
+2. **Regelsystem (ohne Codeänderungen)**
+   * **4 Praxis-Standards mit eigenem Schalter**, die sich gegenseitig nicht beeinflussen:
+     Geschlechtertrennung · Paare im selben Zimmer · Gruppenzusammenhalt · Senioren nicht ins obere Hochbett.
+     Sind Geschlechtertrennung und Paar-Regel beide aktiv, dürfen angemeldete Paare trotzdem zusammen schlafen.
+   * **Harte Regeln (Verbote)** werden nie gebrochen – lieber bleibt eine Person ohne Bett (mit Begründung).
+   * **Weiche Regeln (Wünsche)** geben Plus- oder Minuspunkte.
+   * **Eigene Regeln** im Baukasten "WER → WO → BEWERTUNG" (z. B. "Personen über 65 → Erdgeschoss bevorzugen").
 
-3. **6-Schritt Excel & CSV Import-Wizard**
-   * Schritt 1: Datei-Upload (`.xlsx`, `.xls`, `.csv`).
-   * Schritt 2: Auswahl von Tabellenblatt & Headerzeile.
-   * Schritt 3: Tabellen-Vorschau.
-   * Schritt 4: **Manuelles Spalten-Mapping** (Zuordnung beliebiger Spalten zu Name, Alter, Geschlecht, Paar-ID, Gruppe oder benutzerdefinierten Attributen).
-   * Schritt 5: Datensatz-Validierung & Warnungsvorschau.
-   * Schritt 6: Import in die Teilnehmerliste.
-   * **Pluggable Architecture**: Sauber entkoppeltes `TableMappingService`-Interface für zukünftige KI-Spaltenerkennungen.
+3. **Excel- & CSV-Import-Assistent**
+   * `.xlsx`, `.xls`, `.csv` (Trennzeichen wird automatisch erkannt), Spalten frei zuordnen, Prüfung mit Warnungen vor dem Import.
 
-4. **Kuhn-Munkres (Hungarian Algorithm) Optimierung**
-   * Polynomielle $O(N^3)$ Optimierung zur Maximierung der globalen Punkte-Gesamtsumme.
-   * Automatisches Padding für asymmetrische Matrizen (Personen $\neq$ Betten).
-   * Transparente Erklärungs-Engine: Zeigt für jede Zuordnung exakt an, warum sie gewählt wurde und welche Regeln erfüllt wurden.
+4. **Optimierung in zwei Stufen**
+   * **Ungarischer Algorithmus** (Kuhn-Munkres, $O(N^3)$) liefert eine Startverteilung.
+   * **Lokale Suche** (Simulated Annealing + Hill Climbing) verbessert sie und berücksichtigt dabei auch, *wer mit wem* im Zimmer liegt (Paare, Gruppen, Geschlechtertrennung).
+   * Transparente Begründung für jede Zuordnung, Liste aller Personen ohne Bett mit Grund, Excel-Export.
 
 ---
 
 ## 🛠️ Technologie-Stack
 
-* **Backend**: Java 25, Spring Boot 3.2.4, Apache POI 5.2.5, OpenCSV 5.9, Jackson JSON, Maven
-* **Frontend**: React 18, TypeScript, Vite 8, TailwindCSS, Lucide React Icons
-* **Architektur**: REST API, JSON-Dateispeicher (`data/projects/`), Pluggable Services
+* **Backend**: Java 17 oder neuer, Spring Boot 3.2.4, Apache POI 5.2.5, OpenCSV 5.9, Jackson JSON, Maven
+* **Frontend**: React 19, TypeScript, Vite, TailwindCSS, Lucide React Icons
+* **Speicherung**: JSON-Dateien (`data/projects/` bzw. unter Windows `%APPDATA%\ZuORDNER\data\`)
 
 ---
 
@@ -60,11 +59,21 @@ npm run dev
 > Öffnen Sie im Browser: `http://localhost:5173`.
 
 ### 3. Tests ausführen
-Automatisierte Unit- & Szenario-Tests ausführen:
+Automatisierte Unit- & Szenario-Tests (34 Tests) ausführen:
 
 ```powershell
 .\tools\apache-maven-3.9.6\bin\mvn.cmd test
 ```
+
+### 4. Windows-Desktop-Paket bauen
+```powershell
+.\desktop-app\build_windows_app.bat
+```
+> Baut die Oberfläche, die JAR-Datei `target/zuordner-app.jar` und aktualisiert `desktop-app/ZuORDNER-Desktop` samt ZIP.
+
+### Neue Version veröffentlichen
+1. Versionsnummer in `pom.xml` (`<version>`) und `desktop-app/version.json` erhöhen.
+2. Desktop-Paket bauen (siehe oben) und alles nach `main` übernehmen – die installierten Desktop-Programme bieten das Update dann automatisch an.
 
 ---
 
@@ -81,15 +90,23 @@ Automatisierte Unit- & Szenario-Tests ausführen:
 | `DELETE` | `/api/projects/{id}/buildings/{bId}/rooms/{rId}` | Raum löschen |
 | `POST` | `/api/projects/{id}/buildings/{bId}/rooms/{rId}/beds` | Einzelnes Bett hinzufügen |
 | `DELETE` | `/api/projects/{id}/buildings/{bId}/rooms/{rId}/beds/{bedId}` | Einzelnes Bett löschen |
-| `POST` | `/api/projects/{id}/persons` | Teilnehmer hinzufügen/aktualisieren |
-| `POST` | `/api/projects/{id}/import/preview` | Tabelle parsen für Import Wizard |
-| `POST` | `/api/projects/{id}/import/process` | Spaltenzuordnung verarbeiten & importieren |
+| `POST` | `/api/projects/{id}/persons` | Teilnehmer hinzufügen |
+| `PUT` | `/api/projects/{id}/persons/{pId}` | Teilnehmer ändern |
+| `POST` | `/api/projects/{id}/rules` | Eigene Regel anlegen (ID vergibt der Server) |
+| `PUT` | `/api/projects/{id}/rules/{ruleId}` | Regel ändern / an- und ausschalten |
+| `PUT` | `/api/projects/{id}/rules/standard/{key}` | Standard-Regel schalten, Body `{"active": true}` (Keys: `GENDER_SEPARATION`, `COUPLES_TOGETHER`, `GROUPS_TOGETHER`, `SENIORS_NO_TOP_BUNK`) |
+| `POST` | `/api/projects/{id}/import/preview` | Tabelle parsen für den Import-Assistenten |
+| `POST` | `/api/projects/{id}/import/map` | Spaltenzuordnung anwenden & prüfen |
+| `POST` | `/api/projects/{id}/import/save` | Geprüfte Teilnehmer übernehmen |
 | `POST` | `/api/projects/{id}/assignment/calculate` | **Optimierung berechnen & Zuordnungsergebnis abrufen** |
+| `GET` | `/api/projects/{id}/assignment/export/excel` | Belegungsplan als Excel-Datei |
+| `GET` | `/api/system/version` | Programmversion & Update-Prüfung |
 
 ---
 
-## 📄 Ausführliche Handbuch-Dokumentation & PDF
+## 📄 Ausführliche Dokumentation
 
-Eine umfassende technische Handbuch-Dokumentation mit detaillierten Erklärungen aller Klassen, Algorithmen und mathematischen Formeln wurde generiert und liegt als **PDF** im Projektstammverzeichnis bereit:
-
-* `ZuORDNER_Technische_Dokumentation.pdf`
+* `DOCUMENTATION.html` bzw. `ZuORDNER_Technische_Dokumentation.pdf` – Architektur, Algorithmen und wichtigste Klassen.
+* Der Quellcode ist ausführlich auf Deutsch kommentiert – ein guter Einstieg sind
+  `src/main/java/de/zuordner/engine/AssignmentService.java` (Ablauf der Berechnung) und
+  `frontend/src/App.tsx` (Aufbau der Oberfläche).

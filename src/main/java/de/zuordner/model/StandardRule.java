@@ -14,9 +14,9 @@ package de.zuordner.model;
  * das Wort 'paar'". Die Geschlechter-Regel hieß aber "Harte Geschlechtertrennung
  * (mit Paar-Ausnahme)" – sie enthält also auch "Paar"! Dadurch hat der Schalter
  * "Paare im selben Zimmer" in Wahrheit die Geschlechter-Regel umgeschaltet.
- * Zusätzlich bekamen neue Regeln alle die leere ID "", sodass beim Speichern
- * die falsche Regel überschrieben wurde. Mit festen Schlüsseln + echten IDs
- * kann das nicht mehr passieren.
+ * Zusätzlich bekamen neue Regeln alle die leere ID "" und ließen sich danach
+ * nicht mehr umschalten. Mit festen Schlüsseln + echten IDs kann beides nicht
+ * mehr passieren.
  *
  * Jeder Eintrag weiß außerdem, wie "seine" Regel standardmäßig aussieht
  * ({@link #createDefaultRule()}). So steht die Definition nur an EINER Stelle.
@@ -60,7 +60,8 @@ public enum StandardRule {
                 rule = new DynamicRule(
                         "Paare im selben Zimmer",
                         "Personen mit der gleichen Paar-ID werden bevorzugt im selben Zimmer untergebracht "
-                                + "(+50 Punkte pro Person). Funktioniert mit und ohne Geschlechtertrennung.",
+                                + "(+50 Punkte pro Person), wenn möglich im Doppelbett (+10). "
+                                + "Funktioniert mit und ohne Geschlechtertrennung.",
                         RuleType.SOFT,
                         TargetScope.PAIR_CO_LOCATION,
                         RuleAction.ADD_POINTS,

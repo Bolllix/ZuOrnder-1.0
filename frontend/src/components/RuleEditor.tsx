@@ -12,7 +12,7 @@
 // "Harte Geschlechtertrennung (mit Paar-Ausnahme)" – der Paar-Schalter hat
 // nach dem Wort "paar" gesucht und deshalb die FALSCHE Regel umgeschaltet.
 // Außerdem vergibt jetzt der Server die Regel-IDs (früher bekamen alle neuen
-// Regeln die leere ID "", wodurch beim Speichern Regeln überschrieben wurden).
+// Regeln die leere ID "" und ließen sich danach nicht mehr umschalten).
 import React, { useState } from 'react';
 import type { Project, DynamicRule, NewDynamicRule, RuleType, TargetScope, Condition, StandardRuleKey } from '../types';
 import { api } from '../services/api';
@@ -73,7 +73,7 @@ const STANDARD_CARDS: Array<{
     badgeClass: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
     icon: Heart,
     iconClass: 'bg-rose-500/10 text-rose-400',
-    text: 'Angemeldete Paare mit gleicher Paar-ID werden bevorzugt im selben Zimmer untergebracht (+50 Punkte pro Person). Funktioniert mit und ohne Geschlechtertrennung.',
+    text: 'Angemeldete Paare mit gleicher Paar-ID werden bevorzugt im selben Zimmer untergebracht (+50 Punkte pro Person), wenn möglich im Doppelbett. Funktioniert mit und ohne Geschlechtertrennung.',
   },
   {
     key: 'GROUPS_TOGETHER',

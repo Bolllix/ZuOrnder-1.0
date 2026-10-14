@@ -1,6 +1,10 @@
 ===================================================
- ZuORDNER - Lokale Windows Desktop-Version
+ ZuORDNER - Lokale Windows Desktop-Version (2.0)
 ===================================================
+
+0. Voraussetzung:
+   Java ab Version 17 muss installiert sein
+   (z.B. kostenlos von https://adoptium.net).
 
 1. Programm starten:
    Mache einfach einen Doppelklick auf "ZuORDNER starten.vbs".
@@ -24,10 +28,21 @@
    dauerhaft und sicher lokal auf deinem Computer gespeichert:
    (unter C:\Users\<DeinName>\AppData\Roaming\ZuORDNER\data\)
    Auch bei Updates gehen deine Daten niemals verloren.
+   Beim ersten Start von Version 2.0 werden alte Projekte automatisch
+   umgewandelt. Vorher wird von jedem Projekt eine Sicherheitskopie
+   (Dateiendung .json.v1-backup) im selben Ordner angelegt.
 
 5. Excel-Listen:
    Du kannst Teilnehmerlisten als Excel- oder CSV-Datei jederzeit
    über den Button "Excel/CSV Import" direkt in dein Programm laden.
+
+6. Neu in Version 2.0:
+   - Die Schalter "Geschlechtertrennung" und "Paare im selben Zimmer"
+     funktionieren jetzt unabhängig voneinander. Sind beide an, dürfen
+     angemeldete Paare (gleiche Paar-ID) trotzdem zusammen schlafen.
+   - Paare, Gruppen und Geschlechtertrennung werden bei der Verteilung
+     wirklich berücksichtigt.
+   - Personen ohne Bett werden mit Grund angezeigt.
 
 Viel Freude mit ZuORDNER!
 ===================================================

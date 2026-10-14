@@ -14,8 +14,8 @@ import java.util.*;
  *
  * Was wird repariert?
  *  1. Regeln ohne ID (leere ID "") oder mit doppelter ID bekommen eine neue,
- *     eindeutige ID. Exakte Kopien, die durch den alten ID-Fehler entstanden
- *     sind, werden entfernt.
+ *     eindeutige ID. Exakte Kopien mit leerer ID (z.B. mehrfach angelegt, weil
+ *     sich die Regel wegen des alten ID-Fehlers nicht umschalten ließ) werden entfernt.
  *  2. Die 4 Standard-Regeln werden erkannt und bekommen ihren festen Schlüssel
  *     ({@link StandardRule}). Die alte Geschlechtertrennung (Raum-Regel ohne
  *     Bedingungen) wird in den neuen Regel-Typ GENDER_SEPARATION umgewandelt.
@@ -67,7 +67,7 @@ public final class ProjectMigration {
 
             boolean hadBlankId = rule.getId() == null || rule.getId().isBlank();
             if (hadBlankId && containsSameContent(cleaned, rule)) {
-                // Exakte Kopie, entstanden durch den alten Fehler mit der leeren ID
+                // Exakte Kopie mit leerer ID (Folge des alten ID-Fehlers) -> weglassen
                 changed = true;
                 continue;
             }
