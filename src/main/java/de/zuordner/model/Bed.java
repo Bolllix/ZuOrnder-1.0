@@ -5,6 +5,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * ============================================================================
+ * Bed – ein einzelner Schlafplatz
+ * ============================================================================
+ * Achtung: Ein Doppelbett oder Hochbett besteht aus ZWEI Bed-Einträgen
+ * (zwei Schlafplätze). Jeder Eintrag kann genau eine Person aufnehmen.
+ *
+ * Raumname, Etage und Gebäudename werden zusätzlich im Bett gespeichert,
+ * damit man sie bei der Anzeige direkt zur Hand hat.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Bed {
     private String id;
@@ -13,7 +23,9 @@ public class Bed {
     private String roomName;
     private int floor;
     private String buildingName;
+    /** Wird aktuell nicht verwendet (die Belegung steht im AssignmentResult) */
     private String occupantId;
+    /** Freie Zusatzangaben für eigene Regeln */
     private Map<String, Object> customAttributes;
 
     public Bed() {
@@ -95,10 +107,12 @@ public class Bed {
         this.customAttributes = customAttributes;
     }
 
+    /** true, wenn dies der obere Platz eines Hochbetts ist */
     public boolean isTopBunk() {
         return bedType == BedType.TOP_BUNK;
     }
 
+    /** true, wenn dies der untere Platz eines Hochbetts ist */
     public boolean isBottomBunk() {
         return bedType == BedType.BOTTOM_BUNK;
     }
