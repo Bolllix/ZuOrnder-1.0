@@ -33,6 +33,7 @@
 ### Geändertes Verhalten
 
 * **Alte Projekte werden beim ersten Start automatisch umgewandelt** (Regel-IDs, Standard-Regeln). Vorher wird je Projekt eine Sicherheitskopie `<projekt>.json.v1-backup` im selben Ordner angelegt.
+  Version 1.1 kann umgewandelte Projekte nicht mehr öffnen. Wer zurück zu 1.1 möchte, benennt die Sicherheitskopien wieder in `<projekt>.json` um.
 * Harte Regeln werden nie gebrochen. Passt eine Person nirgends hin, bleibt sie ohne Bett und erscheint mit Grund in der Liste.
 * Die automatische Geschlechtertrennung trennt nur männlich und weiblich. Personen mit "divers" oder ohne Angabe schränkt sie nicht ein; das regelt die Leitung bei Bedarf selbst.
 * Das Beispielprojekt wird nur noch beim allerersten Start angelegt und kommt nach dem Löschen nicht ungefragt zurück.
