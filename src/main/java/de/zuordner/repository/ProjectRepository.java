@@ -42,16 +42,18 @@ public class ProjectRepository {
     /** Ordner, in dem die Projektdateien liegen */
     private final Path storageDir;
 
+    /** Wird von Spring Boot benutzt: Speicherort automatisch wählen (siehe defaultStorageDir). */
     public ProjectRepository() {
-        this.objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+        this(defaultStorageDir());
+    }
 
-        // Unter Windows gibt es die Umgebungsvariable APPDATA (z.B. C:\Users\Max\AppData\Roaming)
-        String appData = System.getenv("APPDATA");
-        if (appData != null && !appData.trim().isEmpty()) {
-            this.storageDir = Paths.get(appData, "ZuORDNER", "data", "projects");
-        } else {
-            this.storageDir = Paths.get("data", "projects");
-        }
+    /**
+     * Speicherort selbst festlegen – praktisch für automatische Tests, die in
+     * einen temporären Ordner schreiben sollen statt in die echten Projektdaten.
+     */
+    public ProjectRepository(Path storageDir) {
+        this.objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+        this.storageDir = storageDir;
 
         initStorage();
         loadProjectsFromDisk();
@@ -62,6 +64,19 @@ public class ProjectRepository {
             Project sample = createSampleProject();
             saveProject(sample);
         }
+    }
+
+    /**
+     * Standard-Speicherort: Unter Windows gibt es die Umgebungsvariable APPDATA
+     * (z.B. C:\Users\Max\AppData\Roaming) – dort bleiben die Daten auch bei Updates
+     * erhalten. Sonst wird der Ordner data/projects im Programmordner benutzt.
+     */
+    private static Path defaultStorageDir() {
+        String appData = System.getenv("APPDATA");
+        if (appData != null && !appData.trim().isEmpty()) {
+            return Paths.get(appData, "ZuORDNER", "data", "projects");
+        }
+        return Paths.get("data", "projects");
     }
 
     /** Legt den Speicherordner an, falls er noch nicht existiert. */

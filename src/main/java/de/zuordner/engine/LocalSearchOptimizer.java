@@ -45,10 +45,14 @@ public final class LocalSearchOptimizer {
 
     /** Mindestanzahl an Versuchen beim Simulated Annealing */
     private static final long MIN_ITERATIONS = 50_000L;
-    /** Versuche pro Person (mehr Personen = mehr Versuche) */
-    private static final long ITERATIONS_PER_PERSON = 2_000L;
-    /** Höchstanzahl an Versuchen (damit es auch bei sehr großen Projekten schnell bleibt) */
-    private static final long MAX_ITERATIONS = 3_000_000L;
+    /**
+     * Versuche pro Person (mehr Personen = mehr Versuche).
+     * Gemessen: ca. 0,4 s für 100 Personen, ca. 0,8 s für 200 Personen.
+     * Weniger Versuche = schneller, aber z.B. weniger Paare zusammen.
+     */
+    private static final long ITERATIONS_PER_PERSON = 20_000L;
+    /** Höchstanzahl an Versuchen (damit es auch bei sehr großen Projekten nur wenige Sekunden dauert) */
+    private static final long MAX_ITERATIONS = 10_000_000L;
     /** Höchstanzahl kompletter Durchläufe beim Hill Climbing */
     private static final int MAX_HILL_CLIMB_PASSES = 50;
     /** Endtemperatur: so "kühl", dass praktisch nur noch Verbesserungen angenommen werden */
@@ -277,8 +281,12 @@ public final class LocalSearchOptimizer {
         return d;
     }
 
-    /** Führt den Umzug/Tausch von Person i in Bett "target" wirklich aus. */
-    private void apply(int i, int target) {
+    /**
+     * Führt den Umzug/Tausch von Person i in Bett "target" wirklich aus.
+     * (Nicht "private", damit der automatische Test LocalSearchOptimizerTest
+     * prüfen kann, dass delta() immer richtig rechnet.)
+     */
+    void apply(int i, int target) {
         int a = bedOf[i];
         if (target >= 0 && occupant[target] >= 0) {
             // Tausch: k bekommt das alte Bett von i (oder kein Bett, falls i keins hatte)
