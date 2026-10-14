@@ -3,10 +3,16 @@ package de.zuordner.importengine;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Eine eingelesene Tabelle: Spaltenüberschriften + Zeilen (alles als Text).
+ * Wird vom {@link ExcelCsvImporter} erzeugt und im Import-Assistenten als
+ * Vorschau angezeigt.
+ */
 public class TableData {
     private String sheetName;
     private List<String> headers;
     private List<List<String>> rows;
+    /** Anzahl der eingelesenen Datenzeilen (ohne Überschrift) */
     private int totalRows;
 
     public TableData() {

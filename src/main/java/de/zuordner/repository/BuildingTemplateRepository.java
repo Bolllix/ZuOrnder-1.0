@@ -15,6 +15,15 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * ============================================================================
+ * BuildingTemplateRepository – speichert Gebäude-Vorlagen
+ * ============================================================================
+ * Vorlagen liegen (wie die Projekte) als JSON-Dateien im Ordner
+ * %APPDATA%\ZuORDNER\data\building-templates (bzw. data/building-templates).
+ * Zusätzlich können Gebäude aus allen vorhandenen Projekten als Vorlage
+ * verwendet werden.
+ */
 @Repository
 public class BuildingTemplateRepository {
 
@@ -71,6 +80,7 @@ public class BuildingTemplateRepository {
         }
     }
 
+    /** Alle gespeicherten Vorlagen (ohne die Gebäude aus Projekten). */
     public List<Building> getAllTemplates() {
         return new ArrayList<>(templates.values());
     }
@@ -114,6 +124,7 @@ public class BuildingTemplateRepository {
         return result;
     }
 
+    /** Speichert ein Gebäude als Vorlage (Arbeitsspeicher + Datei). */
     public Building saveTemplate(Building building) {
         if (building.getId() == null || building.getId().trim().isEmpty()) {
             building.setId(UUID.randomUUID().toString());
@@ -123,6 +134,7 @@ public class BuildingTemplateRepository {
         return building;
     }
 
+    /** Löscht eine Vorlage. Gibt false zurück, wenn es sie nicht gab. */
     public boolean deleteTemplate(String id) {
         Building removed = templates.remove(id);
         if (removed != null) {
@@ -148,6 +160,8 @@ public class BuildingTemplateRepository {
 
     /**
      * Erstellt eine saubere Tiefenkopie eines Gebäudes mit neuen UUIDs für Betten und Räume.
+     * "Tiefenkopie" heißt: Auch Räume und Betten werden neu erzeugt. Sonst würden
+     * zwei Projekte dieselben Räume/Betten-Objekte (mit denselben IDs) teilen.
      */
     public Building cloneBuilding(Building source) {
         Building copy = new Building(source.getName());

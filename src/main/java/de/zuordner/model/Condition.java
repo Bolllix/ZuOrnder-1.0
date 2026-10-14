@@ -1,9 +1,23 @@
 package de.zuordner.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+/**
+ * ============================================================================
+ * Condition – eine WENN-Bedingung einer Regel
+ * ============================================================================
+ * Beispiel: field = "person.age", operator = GREATER_THAN, value = 65
+ *           bedeutet: "WENN das Alter der Person größer als 65 ist"
+ * Welche Feldnamen es gibt, steht in RuleEngine.extractFieldValue().
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Condition {
-    private String field; // e.g. "person.age", "person.gender", "bed.bedType", "room.floor", "person.partnerId"
+    /** Welches Feld wird geprüft? z.B. "person.age", "person.gender", "bed.bedType", "room.floor" */
+    private String field;
+    /** Wie wird verglichen? (=, !=, >, <, enthält, ...) */
     private Operator operator;
-    private Object value; // e.g. 65, "TOP_BUNK", "weiblich", 1
+    /** Womit wird verglichen? z.B. 65, "TOP_BUNK", "weiblich", true */
+    private Object value;
 
     public Condition() {
     }

@@ -1,5 +1,7 @@
 package de.zuordner.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -13,6 +15,7 @@ import java.util.Map;
  * bekommen hat (und warum), welche Betten frei bleiben und ein paar Kennzahlen.
  * Wird im Projekt gespeichert und im Dashboard angezeigt.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AssignmentResult {
     /** Alle Zuordnungen "Person -> Bett" inklusive Punkte und Begründungen */
     private List<AssignmentPair> assignments;

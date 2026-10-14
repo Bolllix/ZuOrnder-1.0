@@ -19,6 +19,14 @@ import java.util.Arrays;
  *    (Für unzulässige/verbotene Kombinationen setzen wir Cost[i][j] = FORBIDDEN_COST).
  * 4. Zeilen- & Spalten-Reduktion & Augmentierende Pfade: Findet in O(K^3) Zeit das globale
  *    Optimum, welches die Gesamtsumme aller Punktwerte maximiert.
+ *
+ * Grenze dieses Verfahrens: Es bewertet jede Person nur zusammen mit IHREM Bett.
+ * Wer im selben Zimmer landet (Paare, Gruppen, Geschlechtertrennung), kann es
+ * nicht berücksichtigen. Deshalb ist das Ergebnis ab Version 2.0 nur noch der
+ * STARTPUNKT, den der {@link LocalSearchOptimizer} anschließend verbessert.
+ *
+ * "O(K^3)" bedeutet: Bei doppelt so vielen Personen dauert es etwa 8-mal so lange.
+ * Für einige hundert Personen ist das trotzdem nur ein Bruchteil einer Sekunde.
  */
 public class HungarianSolver {
 
@@ -88,6 +96,12 @@ public class HungarianSolver {
 
     /**
      * Standard-Kuhn-Munkres Implementierung für Min-Cost Bipartite Matching in O(N^3).
+     * (Bekannte Lehrbuch-Variante mit "Potentialen" u und v. Die Arrays sind
+     * 1-basiert: Index 0 ist ein Hilfsplatz für den Algorithmus.)
+     *   u[i], v[j]  = Potentiale (Hilfswerte) für Zeile i bzw. Spalte j
+     *   p[j]        = welche Zeile (Person) gerade Spalte (Bett) j zugeordnet ist
+     *   way[j]      = Vorgänger auf dem gerade gesuchten Verbesserungspfad
+     *   minv[j]     = kleinster reduzierter Kostenwert, mit dem Spalte j erreichbar ist
      */
     private static int[] solveMinCostMatching(int[][] cost, int n) {
         int[] u = new int[n + 1];

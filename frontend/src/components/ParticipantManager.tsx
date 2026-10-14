@@ -1,3 +1,9 @@
+// ============================================================================
+// ParticipantManager – Teilnehmer anzeigen, anlegen, bearbeiten, löschen
+// ============================================================================
+// Wichtig für die Regeln: Paare bekommen dieselbe Paar-ID (z.B. "P1"), Mitglieder
+// einer Gruppe/Klasse denselben Gruppennamen. Daran erkennt die Optimierung,
+// wer zusammen in ein Zimmer soll.
 import React, { useState } from 'react';
 import type { Project, Person } from '../types';
 import { api } from '../services/api';
@@ -13,7 +19,7 @@ export const ParticipantManager: React.FC<ParticipantManagerProps> = ({ project,
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingPerson, setEditingPerson] = useState<Person | null>(null);
 
-  // New Participant Form State
+  // Formular "Neuen Teilnehmer anlegen"
   const [firstname, setFirstname] = useState('');
   const [lastname, setLastname] = useState('');
   const [gender, setGender] = useState('maennlich');
@@ -21,7 +27,7 @@ export const ParticipantManager: React.FC<ParticipantManagerProps> = ({ project,
   const [partnerId, setPartnerId] = useState('');
   const [groupId, setGroupId] = useState('');
 
-  // Edit Participant Form State
+  // Formular "Teilnehmer bearbeiten" (eigene Felder, damit Abbrechen nichts verändert)
   const [editFirstname, setEditFirstname] = useState('');
   const [editLastname, setEditLastname] = useState('');
   const [editGender, setEditGender] = useState('maennlich');
@@ -32,6 +38,7 @@ export const ParticipantManager: React.FC<ParticipantManagerProps> = ({ project,
   const [editDesiredRoom, setEditDesiredRoom] = useState('');
   const [editSpecialNeeds, setEditSpecialNeeds] = useState('');
 
+  /** Neuen Teilnehmer speichern (Nachname ist Pflicht). Leere Paar-/Gruppen-IDs werden weggelassen. */
   const handleAddPerson = async () => {
     if (!lastname.trim()) return;
     try {
@@ -50,11 +57,12 @@ export const ParticipantManager: React.FC<ParticipantManagerProps> = ({ project,
       setPartnerId('');
       setGroupId('');
       setShowAddForm(false);
-    } catch (e) {
+    } catch {
       alert('Fehler beim Erstellen des Teilnehmers.');
     }
   };
 
+  /** Bearbeiten-Fenster öffnen und die Felder mit den aktuellen Werten füllen. */
   const handleOpenEditModal = (person: Person) => {
     setEditingPerson(person);
     setEditFirstname(person.firstname || '');
@@ -68,6 +76,7 @@ export const ParticipantManager: React.FC<ParticipantManagerProps> = ({ project,
     setEditSpecialNeeds(person.specialNeeds || '');
   };
 
+  /** Geänderte Daten speichern ("...editingPerson" übernimmt alle übrigen Felder unverändert). */
   const handleSaveEditedPerson = async () => {
     if (!editingPerson || !editLastname.trim()) return;
     try {
@@ -87,7 +96,7 @@ export const ParticipantManager: React.FC<ParticipantManagerProps> = ({ project,
       const updatedProject = await api.updatePerson(project.id, editingPerson.id, updatedPersonPayload);
       onProjectUpdate(updatedProject);
       setEditingPerson(null);
-    } catch (e) {
+    } catch {
       alert('Fehler beim Aktualisieren des Teilnehmers.');
     }
   };
@@ -97,11 +106,12 @@ export const ParticipantManager: React.FC<ParticipantManagerProps> = ({ project,
     try {
       const updated = await api.deletePerson(project.id, id);
       onProjectUpdate(updated);
-    } catch (e) {
+    } catch {
       alert('Fehler beim Löschen.');
     }
   };
 
+  // Suchfeld: Name, Gruppe und Paar-ID werden durchsucht (Groß-/Kleinschreibung egal)
   const filteredPersons = project.persons.filter((p) => {
     const full = `${p.firstname || ''} ${p.lastname || ''} ${p.groupId || ''} ${p.partnerId || ''}`.toLowerCase();
     return full.includes(searchTerm.toLowerCase());

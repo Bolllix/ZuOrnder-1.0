@@ -1,3 +1,6 @@
+// ============================================================================
+// Navbar – obere Leiste mit Logo, Projektauswahl, Reitern und Versionsanzeige
+// ============================================================================
 import React from 'react';
 import type { Project, SystemVersionInfo } from '../types';
 import { Building2, Users, FileSpreadsheet, SlidersHorizontal, Sparkles, FolderOpen, ArrowUpCircle } from 'lucide-react';
@@ -19,6 +22,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   versionInfo,
   onOpenUpdateModal
 }) => {
+  // Die Reiter (Tabs). "count" zeigt eine kleine Zahl neben dem Namen an.
   const tabs = [
     { id: 'buildings', label: 'Gebäude & Betten', icon: Building2, count: currentProject?.buildings?.length || 0 },
     { id: 'persons', label: 'Teilnehmer', icon: Users, count: currentProject?.persons?.length || 0 },
@@ -101,7 +105,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span className="font-semibold">Update v{versionInfo.latestVersion}</span>
                 </>
               ) : (
-                <span className="font-mono text-[11px] text-slate-400">v{versionInfo?.currentVersion || '1.1.0'}</span>
+                <span className="font-mono text-[11px] text-slate-400">{versionInfo?.currentVersion ? `v${versionInfo.currentVersion}` : 'Version …'}</span>
               )}
             </button>
           </div>

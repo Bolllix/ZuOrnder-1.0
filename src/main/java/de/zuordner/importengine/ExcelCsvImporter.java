@@ -13,9 +13,26 @@ import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+/**
+ * ============================================================================
+ * ExcelCsvImporter – liest Excel- und CSV-Dateien als einfache Tabelle ein
+ * ============================================================================
+ * Ergebnis ist immer ein {@link TableData}-Objekt: eine Liste von Spalten-
+ * überschriften und eine Liste von Zeilen (jede Zeile = Liste von Texten).
+ * Was die Spalten bedeuten (Vorname, Alter, ...), entscheidet erst später der
+ * {@link TableMappingService} anhand der Auswahl im Import-Assistenten.
+ *
+ * Unterstützt werden:
+ *   - .xlsx / .xls  über die Bibliothek Apache POI
+ *   - .csv          über OpenCSV (Trennzeichen ; , Tab oder | wird automatisch erkannt)
+ */
 @Service
 public class ExcelCsvImporter {
 
+    /**
+     * Liefert die Namen aller Tabellenblätter einer Excel-Datei
+     * (bei CSV gibt es nur ein Blatt: "CSV Data").
+     */
     public List<String> getSheetNames(InputStream inputStream, String filename) throws Exception {
         if (filename != null && filename.toLowerCase().endsWith(".csv")) {
             return List.of("CSV Data");
@@ -30,6 +47,12 @@ public class ExcelCsvImporter {
         return sheets;
     }
 
+    /**
+     * Liest eine Tabelle ein.
+     *
+     * @param headerRowIndex  in welcher Zeile die Überschriften stehen (0 = erste Zeile)
+     * @param maxPreviewRows  höchstens so viele Datenzeilen lesen (0 = ALLE Zeilen)
+     */
     public TableData readTablePreview(InputStream inputStream, String filename, String sheetName, int headerRowIndex, int maxPreviewRows) throws Exception {
         if (filename != null && filename.toLowerCase().endsWith(".csv")) {
             return readCsvTable(inputStream, headerRowIndex, maxPreviewRows);
@@ -38,22 +61,25 @@ public class ExcelCsvImporter {
         }
     }
 
+    /** Liest eine CSV-Datei (Text, Spalten durch ein Trennzeichen getrennt). */
     private TableData readCsvTable(InputStream inputStream, int headerRowIndex, int maxPreviewRows) throws Exception {
         byte[] bytes = inputStream.readAllBytes();
         if (bytes.length == 0) {
             return new TableData("CSV Data", new ArrayList<>(), new ArrayList<>());
         }
 
-        // Try UTF-8 first, fallback to ISO-8859-1 only if replacement character \uFFFD is present
+        // Zeichenkodierung: Zuerst UTF-8 versuchen. Tauchen dabei "kaputte" Zeichen (\uFFFD)
+        // auf, war die Datei wohl im älteren Windows-Format (ISO-8859-1) gespeichert.
         String content = new String(bytes, StandardCharsets.UTF_8);
         if (content.contains("\uFFFD")) {
             content = new String(bytes, StandardCharsets.ISO_8859_1);
         }
 
-        // Strip UTF-8 Byte Order Mark (BOM) if present (in UTF-8 or Windows-1252/ISO-8859-1 format)
+        // Unsichtbare "Byte Order Mark" (BOM) am Dateianfang entfernen – Excel schreibt sie
+        // oft in CSV-Dateien, sonst hieße die erste Spalte z.B. "\uFEFFVorname".
         content = content.replace("\uFEFF", "").replace("\u00EF\u00BB\u00BF", "").replace("ï»¿", "");
 
-        // Detect CSV Delimiter (; vs , vs \t vs |)
+        // Trennzeichen erkennen (deutsches Excel nutzt ";" statt ",")
         char delimiter = detectCsvDelimiter(content);
 
         CSVParser parser = new CSVParserBuilder().withSeparator(delimiter).build();
@@ -79,7 +105,7 @@ public class ExcelCsvImporter {
                     if (maxPreviewRows > 0 && lineCount >= maxPreviewRows) {
                         break;
                     }
-                    // Filter empty lines
+                    // Komplett leere Zeilen überspringen
                     boolean hasContent = false;
                     List<String> rowVals = new ArrayList<>();
                     for (String val : line) {
@@ -99,6 +125,10 @@ public class ExcelCsvImporter {
         return new TableData("CSV Data", headers, rows);
     }
 
+    /**
+     * Zählt in der ersten Zeile, welches Trennzeichen am häufigsten vorkommt
+     * (; , Tab oder |) und nimmt dieses. Standard ist das Komma.
+     */
     private char detectCsvDelimiter(String content) {
         if (content == null || content.isEmpty()) return ',';
 
@@ -123,6 +153,7 @@ public class ExcelCsvImporter {
         return ',';
     }
 
+    /** Liest ein Tabellenblatt einer Excel-Datei (.xlsx oder .xls). */
     private TableData readExcelTable(InputStream inputStream, String sheetName, int headerRowIndex, int maxPreviewRows) throws Exception {
         List<String> headers = new ArrayList<>();
         List<List<String>> rows = new ArrayList<>();
@@ -175,6 +206,10 @@ public class ExcelCsvImporter {
         return new TableData(sheetName != null ? sheetName : "Sheet1", headers, rows);
     }
 
+    /**
+     * Gibt den Zellinhalt so als Text zurück, wie Excel ihn anzeigt
+     * (z.B. Zahlen ohne ".0", Datumswerte als Datum).
+     */
     private String getCellValueAsString(Cell cell) {
         if (cell == null) return "";
         DataFormatter formatter = new DataFormatter();

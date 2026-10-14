@@ -10,6 +10,20 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * ============================================================================
+ * BuildingController – Gebäude, Räume und Betten eines Projekts verwalten
+ * ============================================================================
+ * Endpunkte (alle unter /api/projects/{projectId}/buildings):
+ *   GET    /                                   -> alle Gebäude
+ *   POST   /                                   -> Gebäude anlegen
+ *   DELETE /{buildingId}                       -> Gebäude löschen
+ *   POST   /{buildingId}/rooms                 -> Raum (mit Betten) anlegen
+ *   DELETE /{buildingId}/rooms/{roomId}        -> Raum löschen
+ *   POST   /{buildingId}/rooms/{roomId}/beds   -> einzelnes Bett hinzufügen
+ *   DELETE /{buildingId}/rooms/{roomId}/beds/{bedId} -> Bett löschen
+ * Alle Änderungen geben das komplette, gespeicherte Projekt zurück.
+ */
 @RestController
 @RequestMapping("/api/projects/{projectId}/buildings")
 @CrossOrigin(origins = "*")
@@ -28,6 +42,7 @@ public class BuildingController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /** Neues Gebäude anlegen. */
     @PostMapping
     public ResponseEntity<Project> addBuilding(@PathVariable String projectId, @RequestBody Building building) {
         return projectRepository.getProjectById(projectId)
@@ -39,6 +54,7 @@ public class BuildingController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /** Gebäude samt Räumen und Betten löschen. */
     @DeleteMapping("/{buildingId}")
     public ResponseEntity<Project> deleteBuilding(@PathVariable String projectId, @PathVariable String buildingId) {
         return projectRepository.getProjectById(projectId)
@@ -50,6 +66,10 @@ public class BuildingController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Neuen Raum anlegen. Gebäudename, Raumname und Etage werden auf alle
+     * mitgeschickten Betten übertragen.
+     */
     @PostMapping("/{buildingId}/rooms")
     public ResponseEntity<Project> addRoom(@PathVariable String projectId, @PathVariable String buildingId, @RequestBody Room room) {
         return projectRepository.getProjectById(projectId)
@@ -72,6 +92,7 @@ public class BuildingController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /** Raum samt Betten löschen. */
     @DeleteMapping("/{buildingId}/rooms/{roomId}")
     public ResponseEntity<Project> deleteRoom(@PathVariable String projectId, @PathVariable String buildingId, @PathVariable String roomId) {
         return projectRepository.getProjectById(projectId)
@@ -88,6 +109,7 @@ public class BuildingController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /** Ein einzelnes Bett zu einem Raum hinzufügen. */
     @PostMapping("/{buildingId}/rooms/{roomId}/beds")
     public ResponseEntity<Project> addBed(@PathVariable String projectId, @PathVariable String buildingId, @PathVariable String roomId, @RequestBody Bed bed) {
         return projectRepository.getProjectById(projectId)
@@ -112,6 +134,7 @@ public class BuildingController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /** Ein einzelnes Bett löschen. */
     @DeleteMapping("/{buildingId}/rooms/{roomId}/beds/{bedId}")
     public ResponseEntity<Project> deleteBed(@PathVariable String projectId, @PathVariable String buildingId, @PathVariable String roomId, @PathVariable String bedId) {
         return projectRepository.getProjectById(projectId)

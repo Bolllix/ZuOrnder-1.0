@@ -5,6 +5,11 @@ import de.zuordner.model.Person;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Ergebnis der Spaltenzuordnung im Import-Assistenten:
+ * die erkannten Personen plus Hinweise (Warnungen) und Fehler.
+ * Warnungen verhindern den Import nicht – sie zeigen nur, was korrigiert wurde.
+ */
 public class ImportValidationResult {
     private List<Person> validPersons;
     private List<String> warnings;

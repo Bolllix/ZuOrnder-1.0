@@ -1,3 +1,13 @@
+// ============================================================================
+// BuildingManager – Gebäude, Räume und Betten verwalten (Reiter "Gebäude & Betten")
+// ============================================================================
+// Links: Liste der Gebäude (auswählen, als Vorlage speichern, löschen).
+// Rechts: Räume des gewählten Gebäudes mit ihren Betten.
+// Zusätzlich kann man Gebäude aus einer Vorlage oder einem anderen Projekt kopieren.
+//
+// Jede Änderung wird sofort an den Server geschickt. Der Server antwortet mit
+// dem kompletten, aktualisierten Projekt, das wir mit onProjectUpdate an die
+// Hauptkomponente (App.tsx) weitergeben – so sehen alle Reiter den neuen Stand.
 import React, { useState, useRef } from 'react';
 import type { Project, BedType, Bed, Building } from '../types';
 import { api } from '../services/api';
@@ -13,29 +23,31 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
   const [buildingNameError, setBuildingNameError] = useState<string | null>(null);
   const buildingInputRef = useRef<HTMLInputElement>(null);
 
+  // Welches Gebäude ist links ausgewählt? (Startwert: das erste)
   const [selectedBuildingId, setSelectedBuildingId] = useState<string | null>(
     project.buildings.length > 0 ? project.buildings[0].id : null
   );
 
-  // Template / Reusable Buildings State
+  // Zustand für das Vorlagen-Fenster
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [availableTemplates, setAvailableTemplates] = useState<Array<{ id: string; name: string; source: string; roomCount: number; bedCount: number; building: Building }>>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
   const [savedTemplateSuccessId, setSavedTemplateSuccessId] = useState<string | null>(null);
   const [importingId, setImportingId] = useState<string | null>(null);
 
-  // New Room Form State
+  // Formular "Neuen Raum anlegen"
   const [newRoomName, setNewRoomName] = useState('');
   const [newRoomFloor, setNewRoomFloor] = useState(0);
   const [isGirlsRoom, setIsGirlsRoom] = useState(false);
   const [isBoysRoom, setIsBoysRoom] = useState(false);
   const [bedSetupType, setBedSetupType] = useState<'SINGLE' | 'DOUBLE' | 'BUNK' | 'CUSTOM'>('BUNK');
 
-  // Single Bed Add Modal State
+  // Formular "Einzelnes Bett hinzufügen" (gehört zu genau einem Raum)
   const [addingBedRoomId, setAddingBedRoomId] = useState<string | null>(null);
   const [singleBedName, setSingleBedName] = useState('');
   const [singleBedType, setSingleBedType] = useState<BedType>('SINGLE');
 
+  /** Neues Gebäude anlegen (ohne Namen gibt es eine Fehlermeldung am Eingabefeld). */
   const handleAddBuilding = async () => {
     if (!newBuildingName.trim()) {
       setBuildingNameError('Bitte gib zuerst einen Namen für das Gebäude ein!');
@@ -53,7 +65,7 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
       if (updated.buildings.length > 0) {
         setSelectedBuildingId(updated.buildings[updated.buildings.length - 1].id);
       }
-    } catch (e) {
+    } catch {
       alert('Fehler beim Erstellen des Gebäudes.');
     }
   };
@@ -66,19 +78,19 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
       if (selectedBuildingId === buildingId) {
         setSelectedBuildingId(updatedProject.buildings.length > 0 ? updatedProject.buildings[0].id : null);
       }
-    } catch (e) {
+    } catch {
       alert('Fehler beim Löschen des Gebäudes.');
     }
   };
 
-  // Template / Reusable Buildings Handlers
+  // --- Vorlagen ---------------------------------------------------------------
   const handleOpenTemplateModal = async () => {
     setShowTemplateModal(true);
     setLoadingTemplates(true);
     try {
       const list = await api.getBuildingTemplates();
       setAvailableTemplates(list);
-    } catch (e) {
+    } catch {
       alert('Fehler beim Laden der Gebäude-Vorlagen.');
     } finally {
       setLoadingTemplates(false);
@@ -90,7 +102,7 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
       await api.saveBuildingTemplate(building);
       setSavedTemplateSuccessId(building.id);
       setTimeout(() => setSavedTemplateSuccessId(null), 3500);
-    } catch (e) {
+    } catch {
       alert('Fehler beim Speichern der Vorlage.');
     }
   };
@@ -104,7 +116,7 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
       if (updated.buildings.length > 0) {
         setSelectedBuildingId(updated.buildings[updated.buildings.length - 1].id);
       }
-    } catch (e) {
+    } catch {
       alert('Fehler beim Übernehmen des Gebäudes.');
     } finally {
       setImportingId(null);
@@ -117,11 +129,15 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
     try {
       await api.deleteBuildingTemplate(templateId);
       setAvailableTemplates(prev => prev.filter(t => t.id !== templateId));
-    } catch (e) {
+    } catch {
       alert('Fehler beim Löschen der Vorlage.');
     }
   };
 
+  /**
+   * Neuen Raum anlegen. Je nach "Betten-Vorkonfiguration" werden gleich zwei
+   * passende Betten mitgeschickt (Etagenbett = unten + oben, Doppelbett = A + B).
+   */
   const handleAddRoom = async () => {
     if (!selectedBuildingId || !newRoomName.trim()) return;
     try {
@@ -148,7 +164,7 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
       const updated = await api.addRoom(project.id, selectedBuildingId, roomPayload);
       onProjectUpdate(updated);
       setNewRoomName('');
-    } catch (e) {
+    } catch {
       alert('Fehler beim Hinzufügen des Raums.');
     }
   };
@@ -158,11 +174,12 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
     try {
       const updatedProject = await api.deleteRoom(project.id, buildingId, roomId);
       onProjectUpdate(updatedProject);
-    } catch (e) {
+    } catch {
       alert('Fehler beim Löschen des Raums.');
     }
   };
 
+  /** Ein einzelnes Bett zum gerade geöffneten Raum hinzufügen. */
   const handleAddSingleBed = async () => {
     if (!selectedBuildingId || !addingBedRoomId || !singleBedName.trim()) return;
     try {
@@ -175,7 +192,7 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
       onProjectUpdate(updated);
       setAddingBedRoomId(null);
       setSingleBedName('');
-    } catch (e) {
+    } catch {
       alert('Fehler beim Hinzufügen des Betts.');
     }
   };
@@ -185,7 +202,7 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
     try {
       const updated = await api.deleteBed(project.id, buildingId, roomId, bedId);
       onProjectUpdate(updated);
-    } catch (e) {
+    } catch {
       alert('Fehler beim Löschen des Betts.');
     }
   };
@@ -381,6 +398,7 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
                   </div>
 
                   <div className="flex items-center justify-between pt-2">
+                    {/* Mädchen-/Jungenzimmer schließen sich gegenseitig aus. Sie wirken nur bei aktiver Geschlechtertrennung. */}
                     <div className="flex items-center space-x-6">
                       <label className="flex items-center space-x-2 text-xs text-slate-300 cursor-pointer">
                         <input
@@ -392,7 +410,7 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
                           }}
                           className="rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-0"
                         />
-                        <span>Mädchenzimmer (Präferenz)</span>
+                        <span title="Nur Mädchen/Frauen – gilt, wenn die Regel 'Geschlechtertrennung' aktiv ist">Mädchenzimmer</span>
                       </label>
 
                       <label className="flex items-center space-x-2 text-xs text-slate-300 cursor-pointer">
@@ -405,7 +423,7 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
                           }}
                           className="rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-0"
                         />
-                        <span>Jungenzimmer (Präferenz)</span>
+                        <span title="Nur Jungen/Männer – gilt, wenn die Regel 'Geschlechtertrennung' aktiv ist">Jungenzimmer</span>
                       </label>
                     </div>
 
@@ -505,7 +523,8 @@ export const BuildingManager: React.FC<BuildingManagerProps> = ({ project, onPro
                                   <option value="DOUBLE">Doppelbett</option>
                                   <option value="TOP_BUNK">Hochbett (Oben)</option>
                                   <option value="BOTTOM_BUNK">Hochbett (Unten)</option>
-                                  <option value="SOFA_BED">Schlafsofa</option>
+                                  {/* Der Wert muss exakt dem Java-Enum BedType entsprechen ("SOFA", nicht "SOFA_BED") */}
+                                  <option value="SOFA">Schlafsofa</option>
                                 </select>
                               </div>
                               <div className="flex justify-end space-x-2">

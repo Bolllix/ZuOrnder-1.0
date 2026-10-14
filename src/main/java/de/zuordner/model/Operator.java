@@ -1,5 +1,10 @@
 package de.zuordner.model;
 
+/**
+ * Vergleichsarten für WENN-Bedingungen.
+ * Ein "enum" ist eine feste Liste erlaubter Werte – hier z.B. EQUALS ("=")
+ * oder GREATER_THAN (">"). Der Text in Klammern ist das Anzeigesymbol.
+ */
 public enum Operator {
     EQUALS("="),
     NOT_EQUALS("!="),
@@ -9,6 +14,7 @@ public enum Operator {
     LESS_EQUAL("<="),
     IN("enthält in Liste"),
     CONTAINS("enthält Text"),
+    /** Vergleicht zwei Felder miteinander, z.B. Wunsch-Etage == Raum-Etage */
     MATCH_ROOM_PROP("stimmt mit Raumeigenschaft überein");
 
     private final String symbol;

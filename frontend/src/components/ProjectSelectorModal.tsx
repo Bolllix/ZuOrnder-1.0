@@ -1,3 +1,6 @@
+// ============================================================================
+// ProjectSelectorModal – Fenster zum Wechseln, Anlegen und Löschen von Projekten
+// ============================================================================
 import React, { useState } from 'react';
 import type { Project } from '../types';
 import { api } from '../services/api';
@@ -24,6 +27,7 @@ export const ProjectSelectorModal: React.FC<ProjectSelectorModalProps> = ({
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
 
+  /** Neues, leeres Projekt anlegen und direkt auswählen. */
   const handleCreate = async () => {
     if (!name.trim()) return;
     try {
@@ -31,18 +35,20 @@ export const ProjectSelectorModal: React.FC<ProjectSelectorModalProps> = ({
       onProjectCreated(created);
       onSelectProject(created);
       onClose();
-    } catch (e) {
+    } catch {
       alert('Fehler beim Erstellen des Projekts.');
     }
   };
 
+  /** Projekt nach Rückfrage löschen. */
   const handleDeleteProject = async (id: string, name: string, e: React.MouseEvent) => {
+    // Verhindert, dass der Klick zusätzlich das Projekt auswählt (Klick "blubbert" sonst nach oben)
     e.stopPropagation();
     if (!confirm(`Möchten Sie das Projekt '${name}' wirklich dauerhaft löschen?`)) return;
     try {
       await api.deleteProject(id);
       onProjectDeleted(id);
-    } catch (err) {
+    } catch {
       alert('Fehler beim Löschen des Projekts.');
     }
   };

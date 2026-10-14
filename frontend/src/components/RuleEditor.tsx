@@ -1,5 +1,20 @@
+// ============================================================================
+// RuleEditor – Regeln verwalten (Reiter "Regel-Editor")
+// ============================================================================
+// Die Seite hat zwei Bereiche:
+//  1. Vier "Praxis-Standards" mit je einem An/Aus-Schalter
+//     (Geschlechtertrennung, Paare, Gruppen, Senioren).
+//  2. Eigene Zusatzregeln, die man im Fenster "WER -> WO -> BEWERTUNG" baut.
+//
+// WICHTIG (Fehlerbehebung Version 2.0):
+// Jeder Schalter findet "seine" Regel über einen festen Schlüssel (standardKey),
+// NICHT mehr über Wörter im Namen. Früher hieß die Geschlechter-Regel z.B.
+// "Harte Geschlechtertrennung (mit Paar-Ausnahme)" – der Paar-Schalter hat
+// nach dem Wort "paar" gesucht und deshalb die FALSCHE Regel umgeschaltet.
+// Außerdem vergibt jetzt der Server die Regel-IDs (früher bekamen alle neuen
+// Regeln die leere ID "", wodurch beim Speichern Regeln überschrieben wurden).
 import React, { useState } from 'react';
-import type { Project, DynamicRule, RuleType, TargetScope, Condition } from '../types';
+import type { Project, DynamicRule, NewDynamicRule, RuleType, TargetScope, Condition, StandardRuleKey } from '../types';
 import { api } from '../services/api';
 import {
   SlidersHorizontal,
@@ -18,7 +33,8 @@ import {
   CheckCircle2,
   XCircle,
   AlertTriangle,
-  X
+  X,
+  Link2,
 } from 'lucide-react';
 
 interface RuleEditorProps {
@@ -26,17 +42,81 @@ interface RuleEditorProps {
   onProjectUpdate: (updated: Project) => void;
 }
 
+// Auswahlmöglichkeiten im Fenster "Eigene Regel erstellen"
+type WhoType = 'AGE' | 'GROUP' | 'GENDER' | 'SPECIAL' | 'ALL';
+type WhereType = 'TOP_BUNK' | 'BOTTOM_BUNK' | 'DOUBLE_BED' | 'GROUND_FLOOR' | 'SPECIFIC_FLOOR' | 'SAME_ROOM';
+type RatingType = 'FORBID' | 'AVOID_STRONG' | 'AVOID' | 'VERY_HIGH' | 'HIGH' | 'LOW';
+
+/** Aussehen und Text der 4 Standard-Karten. Die Regel selbst legt der Server an. */
+const STANDARD_CARDS: Array<{
+  key: StandardRuleKey;
+  title: string;
+  badge: string;
+  badgeClass: string;
+  icon: React.ElementType;
+  iconClass: string;
+  text: string;
+}> = [
+  {
+    key: 'GENDER_SEPARATION',
+    title: 'Geschlechtertrennung im Zimmer',
+    badge: 'Strikte Regel (Getrennte Zimmer)',
+    badgeClass: 'bg-rose-500/20 text-rose-300 border border-rose-500/30',
+    icon: ShieldAlert,
+    iconClass: 'bg-pink-500/10 text-pink-400',
+    text: 'Männer und Frauen schlafen nicht im selben Zimmer. Als Mädchen- bzw. Jungenzimmer markierte Räume sind dann nur für Mädchen bzw. Jungen. Wenn inaktiv, sind gemischte Zimmer für alle erlaubt.',
+  },
+  {
+    key: 'COUPLES_TOGETHER',
+    title: 'Paare im selben Zimmer',
+    badge: 'Hohe Priorität (Wunsch)',
+    badgeClass: 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
+    icon: Heart,
+    iconClass: 'bg-rose-500/10 text-rose-400',
+    text: 'Angemeldete Paare mit gleicher Paar-ID werden bevorzugt im selben Zimmer untergebracht (+50 Punkte pro Person). Funktioniert mit und ohne Geschlechtertrennung.',
+  },
+  {
+    key: 'GROUPS_TOGETHER',
+    title: 'Gruppenzusammenhalt im Zimmer',
+    badge: 'Bevorzugen (Wunsch)',
+    badgeClass: 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30',
+    icon: Users,
+    iconClass: 'bg-indigo-500/10 text-indigo-400',
+    text: 'Personen derselben Gruppe oder Schulklasse werden bevorzugt zusammen in dieselben Zimmer gelegt.',
+  },
+  {
+    key: 'SENIORS_NO_TOP_BUNK',
+    title: 'Senioren nicht ins obere Hochbett',
+    badge: 'Sicherheits-Verbot (> 65 Jahre)',
+    badgeClass: 'bg-rose-500/20 text-rose-300 border border-rose-500/30',
+    icon: Bed,
+    iconClass: 'bg-amber-500/10 text-amber-400',
+    text: 'Aus Sicherheitsgründen werden Personen über 65 Jahren niemals im oberen Hochbett untergebracht.',
+  },
+];
+
+/** Lesbare Namen für die Regel-Typen (für die "Details"-Ansicht) */
+const SCOPE_LABELS: Record<TargetScope, string> = {
+  BED_PERSON: 'Person ↔ Bett',
+  ROOM_PERSON: 'Person ↔ Raum/Etage',
+  GENDER_SEPARATION: 'Geschlechtertrennung',
+  PAIR_CO_LOCATION: 'Paare zusammen',
+  GROUP_CO_LOCATION: 'Gruppe zusammen',
+  CONDITION_CO_LOCATION: 'Personen mit gleicher Eigenschaft zusammen',
+};
+
 export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate }) => {
+  // "useState" speichert Werte, die sich ändern können. Ändert sich ein Wert,
+  // zeichnet React die Komponente automatisch neu.
   const [showAddModal, setShowAddModal] = useState(false);
-  const [editingRuleId, setEditingRuleId] = useState<string | null>(null);
   const [infoRuleId, setInfoRuleId] = useState<string | null>(null);
 
-  // Form State für benutzerdefinierte Regeln (WER -> WO -> BEWERTUNG)
+  // Formular für eigene Regeln (WER -> WO -> BEWERTUNG)
   const [ruleName, setRuleName] = useState('');
   const [ruleDescription, setRuleDescription] = useState('');
 
   // 1. WER? (Personen-Filter)
-  const [whoType, setWhoType] = useState<'AGE' | 'GROUP' | 'GENDER' | 'SPECIAL' | 'ALL'>('AGE');
+  const [whoType, setWhoType] = useState<WhoType>('AGE');
   const [whoAgeOp, setWhoAgeOp] = useState<'GREATER_THAN' | 'LESS_THAN' | 'EQUALS'>('GREATER_THAN');
   const [whoAgeVal, setWhoAgeVal] = useState<number>(65);
   const [whoGroupVal, setWhoGroupVal] = useState<string>('');
@@ -44,110 +124,41 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
   const [whoSpecialVal, setWhoSpecialVal] = useState<string>('');
 
   // 2. WO? (Bett / Zimmer / Etage)
-  const [whereType, setWhereType] = useState<'TOP_BUNK' | 'BOTTOM_BUNK' | 'DOUBLE_BED' | 'GROUND_FLOOR' | 'SPECIFIC_FLOOR' | 'SAME_ROOM'>('TOP_BUNK');
+  const [whereType, setWhereType] = useState<WhereType>('TOP_BUNK');
   const [whereFloorVal, setWhereFloorVal] = useState<number>(0);
 
   // 3. WIE BEWERTEN? (Gewichtung)
-  const [ratingType, setRatingType] = useState<'FORBID' | 'AVOID_STRONG' | 'AVOID' | 'VERY_HIGH' | 'HIGH' | 'LOW' | 'CUSTOM'>('FORBID');
-  const [customWeight, setCustomWeight] = useState<number>(25);
+  const [ratingType, setRatingType] = useState<RatingType>('FORBID');
 
-  // Standard-Karten Helper
-  const findStandardRule = (type: 'GENDER' | 'COUPLES' | 'GROUPS' | 'SENIORS') => {
-    if (!project.rules) return undefined;
-    if (type === 'GENDER') {
-      return project.rules.find(r => r.name.toLowerCase().includes('geschlecht') || r.description.toLowerCase().includes('geschlecht'));
-    }
-    if (type === 'COUPLES') {
-      return project.rules.find(r => r.targetScope === 'PAIR_CO_LOCATION' || r.name.toLowerCase().includes('paar'));
-    }
-    if (type === 'GROUPS') {
-      return project.rules.find(r => r.targetScope === 'GROUP_CO_LOCATION' || r.name.toLowerCase().includes('gruppe'));
-    }
-    if (type === 'SENIORS') {
-      return project.rules.find(r => r.name.toLowerCase().includes('senior') || r.name.toLowerCase().includes('hochbett'));
-    }
-    return undefined;
-  };
+  // --------------------------------------------------------------------------
+  // Standard-Regeln
+  // --------------------------------------------------------------------------
 
-  const handleToggleStandardRule = async (type: 'GENDER' | 'COUPLES' | 'GROUPS' | 'SENIORS') => {
-    const existing = findStandardRule(type);
-    if (existing) {
-      // Toggle existierend
-      try {
-        const updatedRule = { ...existing, active: !existing.active };
-        const updatedProject = await api.updateRule(project.id, existing.id, updatedRule);
-        onProjectUpdate(updatedProject);
-      } catch (e) {
-        alert('Fehler beim Aktualisieren der Regel.');
-      }
-    } else {
-      // Neu anlegen
-      let newRulePayload: DynamicRule;
-      if (type === 'GENDER') {
-        newRulePayload = {
-          id: '',
-          name: 'Geschlechtertrennung im Zimmer',
-          description: 'Männer und Frauen dürfen nicht im selben Zimmer schlafen (getrennte Zimmer). Wenn inaktiv, sind gemischte Zimmer für alle erlaubt.',
-          active: true,
-          ruleType: 'HARD',
-          targetScope: 'ROOM_PERSON',
-          action: 'FORBID',
-          weight: -999999,
-          conditions: []
-        };
-      } else if (type === 'COUPLES') {
-        newRulePayload = {
-          id: '',
-          name: 'Paare im selben Zimmer',
-          description: 'Angemeldete Paare mit gleicher Paar-ID werden bevorzugt im selben Zimmer / Doppelbett untergebracht (funktioniert mit und ohne Geschlechtertrennung).',
-          active: true,
-          ruleType: 'SOFT',
-          targetScope: 'PAIR_CO_LOCATION',
-          action: 'ADD_POINTS',
-          weight: 50,
-          conditions: []
-        };
-      } else if (type === 'GROUPS') {
-        newRulePayload = {
-          id: '',
-          name: 'Gruppenzusammenhalt im Zimmer',
-          description: 'Personen der gleichen Gruppe/Klasse bevorzugt im selben Zimmer unterbringen (+20 Pkt).',
-          active: true,
-          ruleType: 'SOFT',
-          targetScope: 'GROUP_CO_LOCATION',
-          action: 'ADD_POINTS',
-          weight: 20,
-          conditions: []
-        };
-      } else {
-        newRulePayload = {
-          id: '',
-          name: 'Senioren nicht im oberen Hochbett',
-          description: 'Personen ab 65 Jahren dürfen aus Sicherheitsgründen nicht im oberen Hochbett schlafen.',
-          active: true,
-          ruleType: 'HARD',
-          targetScope: 'BED_PERSON',
-          action: 'FORBID',
-          weight: -999999,
-          conditions: [
-            { field: 'person.age', operator: 'GREATER_THAN', value: 65 },
-            { field: 'bed.isTopBunk', operator: 'EQUALS', value: true }
-          ]
-        };
-      }
+  /** Sucht die Regel zu einem Standard-Schalter – eindeutig über ihren Schlüssel. */
+  const findStandardRule = (key: StandardRuleKey): DynamicRule | undefined =>
+    project.rules?.find((r) => r.standardKey === key);
 
-      try {
-        const updatedProject = await api.addRule(project.id, newRulePayload);
-        onProjectUpdate(updatedProject);
-      } catch (e) {
-        alert('Fehler beim Erstellen der Standard-Regel.');
-      }
+  /**
+   * Schalter umlegen: Der Server ändert GENAU diese eine Regel
+   * (und legt sie an, falls es sie noch nicht gibt). Die anderen bleiben unberührt.
+   */
+  const handleToggleStandardRule = async (key: StandardRuleKey) => {
+    const existing = findStandardRule(key);
+    const newActive = !(existing?.active ?? false);
+    try {
+      const updatedProject = await api.setStandardRuleActive(project.id, key, newActive);
+      onProjectUpdate(updatedProject);
+    } catch {
+      alert('Fehler beim Umschalten der Regel.');
     }
   };
 
-  // Öffnet das Modal für benutzerdefinierte Regeln
+  // --------------------------------------------------------------------------
+  // Eigene Regeln
+  // --------------------------------------------------------------------------
+
+  /** Öffnet das Fenster für eine neue eigene Regel (mit Startwerten). */
   const handleOpenAddModal = () => {
-    setEditingRuleId(null);
     setRuleName('');
     setRuleDescription('');
     setWhoType('AGE');
@@ -159,16 +170,20 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
     setWhereType('TOP_BUNK');
     setWhereFloorVal(0);
     setRatingType('FORBID');
-    setCustomWeight(25);
     setShowAddModal(true);
   };
 
-  // Erzeugt aus dem WER -> WO -> BEWERTUNG Flow die Bedingungen und Payload
+  // "Zusammen ins selbe Zimmer" braucht eine Zielgruppe – "alle Personen zusammen" ergibt keinen Sinn
+  const sameRoomWithoutTarget = whereType === 'SAME_ROOM' && whoType === 'ALL';
+
+  /** Baut aus den Eingaben (WER -> WO -> BEWERTUNG) eine Regel und speichert sie. */
   const handleSaveCustomRule = async () => {
+    if (sameRoomWithoutTarget) return;
+
     let finalName = ruleName.trim();
     if (!finalName) {
-      // Automatischer lesbarer Name
-      const whoText = whoType === 'AGE' ? `Personen Alter ${whoAgeOp === 'GREATER_THAN' ? '>' : '<'} ${whoAgeVal}` :
+      // Automatischer, lesbarer Name, falls keiner eingegeben wurde
+      const whoText = whoType === 'AGE' ? `Personen Alter ${whoAgeOp === 'GREATER_THAN' ? '>' : whoAgeOp === 'LESS_THAN' ? '<' : '='} ${whoAgeVal}` :
                       whoType === 'GROUP' ? `Gruppe '${whoGroupVal || 'Alle'}'` :
                       whoType === 'GENDER' ? `Geschlecht ${whoGenderVal}` :
                       whoType === 'SPECIAL' ? `Mit Anmerkung '${whoSpecialVal}'` : 'Alle Personen';
@@ -180,10 +195,8 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
       finalName = `${whoText} ➔ ${whereText}`;
     }
 
-    // 1. Bedingungen generieren
+    // 1. WENN-Bedingungen aus "WER" erzeugen
     const conditions: Condition[] = [];
-
-    // WER
     if (whoType === 'AGE') {
       conditions.push({ field: 'person.age', operator: whoAgeOp, value: whoAgeVal });
     } else if (whoType === 'GROUP' && whoGroupVal.trim()) {
@@ -194,17 +207,14 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
       conditions.push({ field: 'person.specialneeds', operator: 'CONTAINS', value: whoSpecialVal.trim() });
     }
 
-    // WO
+    // 2. "WO" bestimmt weitere Bedingungen und den Regel-Typ (targetScope)
     let targetScope: TargetScope = 'BED_PERSON';
     if (whereType === 'TOP_BUNK') {
       conditions.push({ field: 'bed.isTopBunk', operator: 'EQUALS', value: true });
-      targetScope = 'BED_PERSON';
     } else if (whereType === 'BOTTOM_BUNK') {
       conditions.push({ field: 'bed.isBottomBunk', operator: 'EQUALS', value: true });
-      targetScope = 'BED_PERSON';
     } else if (whereType === 'DOUBLE_BED') {
       conditions.push({ field: 'bed.bedType', operator: 'EQUALS', value: 'DOUBLE' });
-      targetScope = 'BED_PERSON';
     } else if (whereType === 'GROUND_FLOOR') {
       conditions.push({ field: 'room.floor', operator: 'EQUALS', value: 0 });
       targetScope = 'ROOM_PERSON';
@@ -212,42 +222,39 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
       conditions.push({ field: 'room.floor', operator: 'EQUALS', value: whereFloorVal });
       targetScope = 'ROOM_PERSON';
     } else if (whereType === 'SAME_ROOM') {
-      targetScope = whoType === 'GROUP' ? 'GROUP_CO_LOCATION' : 'PAIR_CO_LOCATION';
+      // Gruppe -> "Mitglieder derselben Gruppe zusammen" (ggf. nur die genannte Gruppe).
+      // Sonst -> "Alle Personen mit dieser Eigenschaft zusammen" (z.B. alle über 65).
+      // (In Version 1.x wurde hier fälschlich eine Paar-Regel daraus.)
+      targetScope = whoType === 'GROUP' ? 'GROUP_CO_LOCATION' : 'CONDITION_CO_LOCATION';
     }
 
-    // WIE BEWERTEN
+    // 3. "BEWERTUNG" -> harte Regel (Verbot) oder Wunsch mit Punkten
     const ruleType: RuleType = ratingType === 'FORBID' ? 'HARD' : 'SOFT';
-    let weight = 0;
-    if (ratingType === 'FORBID') weight = -999999;
-    else if (ratingType === 'AVOID_STRONG') weight = -50;
-    else if (ratingType === 'AVOID') weight = -25;
-    else if (ratingType === 'VERY_HIGH') weight = 50;
-    else if (ratingType === 'HIGH') weight = 25;
-    else if (ratingType === 'LOW') weight = 10;
-    else if (ratingType === 'CUSTOM') weight = customWeight;
+    const weightByRating: Record<RatingType, number> = {
+      FORBID: -999999,
+      AVOID_STRONG: -50,
+      AVOID: -25,
+      VERY_HIGH: 50,
+      HIGH: 25,
+      LOW: 10,
+    };
 
-    const payload: DynamicRule = {
-      id: editingRuleId || '',
+    const payload: NewDynamicRule = {
       name: finalName,
       description: ruleDescription.trim() || generateLiveSummary(),
       active: true,
       ruleType,
       targetScope,
       action: ruleType === 'HARD' ? 'FORBID' : 'ADD_POINTS',
-      weight,
+      weight: weightByRating[ratingType],
       conditions,
     };
 
     try {
-      let updated: Project;
-      if (editingRuleId) {
-        updated = await api.updateRule(project.id, editingRuleId, payload);
-      } else {
-        updated = await api.addRule(project.id, payload);
-      }
+      const updated = await api.addRule(project.id, payload);
       onProjectUpdate(updated);
       setShowAddModal(false);
-    } catch (e) {
+    } catch {
       alert('Fehler beim Speichern der Regel.');
     }
   };
@@ -257,28 +264,29 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
     try {
       const updated = await api.deleteRule(project.id, ruleId);
       onProjectUpdate(updated);
-    } catch (e) {
+    } catch {
       alert('Fehler beim Löschen der Regel.');
     }
   };
 
+  /** Eigene Regel an-/ausschalten (die ID ist eindeutig, es ändert sich nur diese Regel). */
   const handleToggleRuleActive = async (rule: DynamicRule) => {
     try {
       const updatedRule = { ...rule, active: !rule.active };
       const updated = await api.updateRule(project.id, rule.id, updatedRule);
       onProjectUpdate(updated);
-    } catch (e) {
+    } catch {
       alert('Fehler beim Aktualisieren der Regel.');
     }
   };
 
-  // Generiert die Live-Satz-Vorschau in natürlichem Deutsch
+  /** Erzeugt die Vorschau der Regel als normalen deutschen Satz. */
   const generateLiveSummary = () => {
     let who = '';
     if (whoType === 'AGE') {
       who = `Personen mit Alter ${whoAgeOp === 'GREATER_THAN' ? 'über' : whoAgeOp === 'LESS_THAN' ? 'unter' : 'von genau'} ${whoAgeVal} Jahren`;
     } else if (whoType === 'GROUP') {
-      who = `Personen aus Gruppe '${whoGroupVal || '...'}'`;
+      who = whoGroupVal.trim() ? `Personen aus Gruppe '${whoGroupVal}'` : 'Personen derselben Gruppe';
     } else if (whoType === 'GENDER') {
       who = `Personen mit Geschlecht ${whoGenderVal}`;
     } else if (whoType === 'SPECIAL') {
@@ -295,30 +303,36 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
     else if (whereType === 'SPECIFIC_FLOOR') where = `in Etage ${whereFloorVal}`;
     else if (whereType === 'SAME_ROOM') where = 'zusammen ins selbe Zimmer';
 
-    let rating = '';
-    if (ratingType === 'FORBID') rating = 'STRIKT VERBOTEN (Ausgeschlossen)';
-    else if (ratingType === 'AVOID_STRONG') rating = 'DRINGEND VERMIEDEN (Sehr hohe Strafe)';
-    else if (ratingType === 'AVOID') rating = 'EHER VERMIEDEN (Leichte Strafe)';
-    else if (ratingType === 'VERY_HIGH') rating = 'UNBEDINGT ANGESTREBT (Höchste Priorität)';
-    else if (ratingType === 'HIGH') rating = 'BEVORZUGT (Normale Priorität)';
-    else if (ratingType === 'LOW') rating = 'MIT LEICHTEM BONUS BELOHNT';
-    else if (ratingType === 'CUSTOM') rating = `MIT ${customWeight > 0 ? '+' : ''}${customWeight} PUNKTEN GEWICHTET`;
+    const ratingText: Record<RatingType, string> = {
+      FORBID: 'STRIKT VERBOTEN (Ausgeschlossen)',
+      AVOID_STRONG: 'DRINGEND VERMIEDEN (Sehr hohe Strafe)',
+      AVOID: 'EHER VERMIEDEN (Leichte Strafe)',
+      VERY_HIGH: 'UNBEDINGT ANGESTREBT (Höchste Priorität)',
+      HIGH: 'BEVORZUGT (Normale Priorität)',
+      LOW: 'MIT LEICHTEM BONUS BELOHNT',
+    };
 
-    return `WENN ${who}, DANN soll die Belegung ${where} ${rating} werden.`;
+    return `WENN ${who}, DANN soll die Belegung ${where} ${ratingText[ratingType]} werden.`;
   };
 
-  // Trennung: Standard-Regeln vs. Benutzerdefinierte Regeln
-  const genderRule = findStandardRule('GENDER');
-  const coupleRule = findStandardRule('COUPLES');
-  const groupRule = findStandardRule('GROUPS');
-  const seniorRule = findStandardRule('SENIORS');
+  // Standard-Regeln vs. eigene Regeln trennen
+  const genderRule = findStandardRule('GENDER_SEPARATION');
+  const coupleRule = findStandardRule('COUPLES_TOGETHER');
+  const customRules = project.rules.filter((r) => !r.standardKey);
 
-  const standardIds = [genderRule?.id, coupleRule?.id, groupRule?.id, seniorRule?.id].filter(Boolean);
-  const customRules = project.rules.filter(r => !standardIds.includes(r.id));
+  // Kleiner Hinweis, wie Geschlechtertrennung und Paar-Regel gerade zusammenspielen
+  let interplayHint: string | null = null;
+  if (genderRule?.active && coupleRule?.active) {
+    interplayHint = 'Geschlechtertrennung UND Paar-Regel sind aktiv: Getrennte Zimmer für alle – nur angemeldete Paare (gleiche Paar-ID) dürfen zusammen schlafen.';
+  } else if (genderRule?.active) {
+    interplayHint = 'Nur die Geschlechtertrennung ist aktiv: Auch Paare werden nach Geschlecht getrennt.';
+  } else if (coupleRule?.active) {
+    interplayHint = 'Nur die Paar-Regel ist aktiv: Paare kommen bevorzugt zusammen, gemischte Zimmer sind erlaubt.';
+  }
 
   return (
     <div className="space-y-8">
-      {/* Header */}
+      {/* Kopfbereich */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
@@ -337,7 +351,7 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
         </button>
       </div>
 
-      {/* BEREICH 1: DIE 4 PRAXIS-STANDARDS (1-Klick Themen-Schalter) */}
+      {/* BEREICH 1: DIE 4 PRAXIS-STANDARDS (1-Klick-Schalter) */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
@@ -345,123 +359,59 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
               <Sparkles className="w-4 h-4 text-indigo-400" /> Praxis-Standards (Empfohlen für jede Freizeit)
             </h3>
             <p className="text-xs text-slate-400">
-              Diese Regeln decken 95 % aller Anforderungen ab. Du kannst sie einfach per Klick an- oder ausschalten.
+              Diese Regeln decken die meisten Anforderungen ab. Jeder Schalter wirkt nur auf seine eigene Regel.
             </p>
           </div>
         </div>
 
+        {/* Für jeden Eintrag in STANDARD_CARDS eine Karte zeichnen ("map" = für jedes Element) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Karte 1: Geschlechtertrennung */}
-          <div className={`p-4 rounded-2xl border transition ${genderRule?.active ? 'bg-slate-900/90 border-indigo-500/50 shadow-lg shadow-indigo-500/5' : 'glass-panel border-slate-800 opacity-70'}`}>
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-pink-500/10 text-pink-400 flex items-center justify-center font-bold">
-                  <ShieldAlert className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-sm text-slate-100">Geschlechtertrennung im Zimmer</h4>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                    Strikte Regel (Getrennte Zimmer)
-                  </span>
-                </div>
-              </div>
-
-              <button
-                onClick={() => handleToggleStandardRule('GENDER')}
-                className={`w-12 h-6 rounded-full transition p-1 flex items-center ${genderRule?.active ? 'bg-indigo-600 justify-end' : 'bg-slate-800 justify-start border border-slate-700'}`}
+          {STANDARD_CARDS.map((card) => {
+            const rule = findStandardRule(card.key);
+            const isActive = rule?.active ?? false;
+            const Icon = card.icon;
+            return (
+              <div
+                key={card.key}
+                className={`p-4 rounded-2xl border transition ${isActive ? 'bg-slate-900/90 border-indigo-500/50 shadow-lg shadow-indigo-500/5' : 'glass-panel border-slate-800 opacity-70'}`}
               >
-                <div className="w-4 h-4 rounded-full bg-white shadow-md" />
-              </button>
-            </div>
-            <p className="text-xs text-slate-400 mt-2.5">
-              Männer und Frauen dürfen nicht im selben Zimmer schlafen (getrennte Zimmer). Wenn inaktiv, sind gemischte Zimmer für alle erlaubt.
-            </p>
-          </div>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold ${card.iconClass}`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-sm text-slate-100">{card.title}</h4>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${card.badgeClass}`}>
+                        {card.badge}
+                      </span>
+                    </div>
+                  </div>
 
-          {/* Karte 2: Paare zusammen */}
-          <div className={`p-4 rounded-2xl border transition ${coupleRule?.active ? 'bg-slate-900/90 border-indigo-500/50 shadow-lg shadow-indigo-500/5' : 'glass-panel border-slate-800 opacity-70'}`}>
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center font-bold">
-                  <Heart className="w-5 h-5" />
+                  {/* Der An/Aus-Schalter */}
+                  <button
+                    onClick={() => handleToggleStandardRule(card.key)}
+                    title={isActive ? 'Regel ausschalten' : 'Regel einschalten'}
+                    className={`w-12 h-6 rounded-full transition p-1 flex items-center ${isActive ? 'bg-indigo-600 justify-end' : 'bg-slate-800 justify-start border border-slate-700'}`}
+                  >
+                    <div className="w-4 h-4 rounded-full bg-white shadow-md" />
+                  </button>
                 </div>
-                <div>
-                  <h4 className="font-semibold text-sm text-slate-100">Paare im selben Zimmer</h4>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                    Hohe Priorität (Wunsch)
-                  </span>
-                </div>
+                <p className="text-xs text-slate-400 mt-2.5">{card.text}</p>
               </div>
-
-              <button
-                onClick={() => handleToggleStandardRule('COUPLES')}
-                className={`w-12 h-6 rounded-full transition p-1 flex items-center ${coupleRule?.active ? 'bg-indigo-600 justify-end' : 'bg-slate-800 justify-start border border-slate-700'}`}
-              >
-                <div className="w-4 h-4 rounded-full bg-white shadow-md" />
-              </button>
-            </div>
-            <p className="text-xs text-slate-400 mt-2.5">
-              Angemeldete Paare mit gleicher Paar-ID werden bevorzugt im selben Zimmer / Doppelbett untergebracht (funktioniert mit und ohne Geschlechtertrennung).
-            </p>
-          </div>
-
-          {/* Karte 3: Gruppenzusammenhalt */}
-          <div className={`p-4 rounded-2xl border transition ${groupRule?.active ? 'bg-slate-900/90 border-indigo-500/50 shadow-lg shadow-indigo-500/5' : 'glass-panel border-slate-800 opacity-70'}`}>
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold">
-                  <Users className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-sm text-slate-100">Gruppenzusammenhalt im Zimmer</h4>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                    Bevorzugen (Wunsch)
-                  </span>
-                </div>
-              </div>
-
-              <button
-                onClick={() => handleToggleStandardRule('GROUPS')}
-                className={`w-12 h-6 rounded-full transition p-1 flex items-center ${groupRule?.active ? 'bg-indigo-600 justify-end' : 'bg-slate-800 justify-start border border-slate-700'}`}
-              >
-                <div className="w-4 h-4 rounded-full bg-white shadow-md" />
-              </button>
-            </div>
-            <p className="text-xs text-slate-400 mt-2.5">
-              Personen derselben Gruppe oder Schulklasse werden bevorzugt zusammen in dieselben Zimmer gelegt.
-            </p>
-          </div>
-
-          {/* Karte 4: Senioren nicht oben */}
-          <div className={`p-4 rounded-2xl border transition ${seniorRule?.active ? 'bg-slate-900/90 border-indigo-500/50 shadow-lg shadow-indigo-500/5' : 'glass-panel border-slate-800 opacity-70'}`}>
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold">
-                  <Bed className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-sm text-slate-100">Senioren nicht ins obere Hochbett</h4>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                    Sicherheits-Verbot (&gt; 65 Jahre)
-                  </span>
-                </div>
-              </div>
-
-              <button
-                onClick={() => handleToggleStandardRule('SENIORS')}
-                className={`w-12 h-6 rounded-full transition p-1 flex items-center ${seniorRule?.active ? 'bg-indigo-600 justify-end' : 'bg-slate-800 justify-start border border-slate-700'}`}
-              >
-                <div className="w-4 h-4 rounded-full bg-white shadow-md" />
-              </button>
-            </div>
-            <p className="text-xs text-slate-400 mt-2.5">
-              Aus Sicherheitsgründen werden Personen über 65 Jahren niemals im oberen Hochbett untergebracht.
-            </p>
-          </div>
+            );
+          })}
         </div>
+
+        {interplayHint && (
+          <div className="flex items-start gap-2 p-3 rounded-xl border border-indigo-500/30 bg-indigo-950/30 text-xs text-indigo-200">
+            <Link2 className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+            <span>{interplayHint}</span>
+          </div>
+        )}
       </div>
 
-      {/* BEREICH 2: BENUTZERDEFINIERTE REGELN (WER -> WO -> BEWERTUNG) */}
+      {/* BEREICH 2: EIGENE ZUSATZREGELN (WER -> WO -> BEWERTUNG) */}
       <div className="space-y-4 pt-4 border-t border-slate-800">
         <div className="flex items-center justify-between">
           <div>
@@ -494,8 +444,10 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
                     }`}
                   >
                     <div className="flex items-center space-x-4">
+                      {/* Häkchen = Regel an/aus */}
                       <button
                         onClick={() => handleToggleRuleActive(r)}
+                        title={r.active ? 'Regel ausschalten' : 'Regel einschalten'}
                         className={`w-6 h-6 rounded-lg flex items-center justify-center transition ${
                           r.active ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-600 border border-slate-700'
                         }`}
@@ -545,7 +497,7 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
                     </div>
                   </div>
 
-                  {/* Info Drawer */}
+                  {/* Aufklappbare Details */}
                   {isInfoOpen && (
                     <div className="p-4 glass-card rounded-xl border border-indigo-500/30 text-xs text-slate-300 space-y-2 bg-slate-900/90 ml-6">
                       <div className="font-bold text-indigo-300 flex items-center gap-1.5">
@@ -553,7 +505,11 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
                       </div>
                       <div>
                         <span className="text-slate-400">Regel-Typ: </span>
-                        <span className="font-mono text-slate-200">{r.ruleType === 'HARD' ? 'Strikter Ausschluss (Verbot)' : r.weight < 0 ? 'Unerwünschtes Szenario (Strafe)' : 'Gewünschtes Szenario (Ziel)'}</span>
+                        <span className="font-mono text-slate-200">{r.ruleType === 'HARD' ? 'Strikter Ausschluss (Verbot)' : r.weight < 0 ? `Unerwünschtes Szenario (${r.weight} Pkt)` : `Gewünschtes Szenario (+${r.weight} Pkt)`}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400">Bezug: </span>
+                        <span className="font-mono text-slate-200">{SCOPE_LABELS[r.targetScope] ?? r.targetScope}</span>
                       </div>
                       {r.conditions && r.conditions.length > 0 && (
                         <div>
@@ -574,7 +530,7 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
         )}
       </div>
 
-      {/* MODAL: NEUE BENUTZERDEFINIERTE REGEL NACH "WER -> WO -> BEWERTUNG" */}
+      {/* FENSTER: NEUE EIGENE REGEL NACH "WER -> WO -> BEWERTUNG" */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="glass-panel p-6 rounded-2xl border border-indigo-500/40 max-w-2xl w-full space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
@@ -586,6 +542,30 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
               <button onClick={() => setShowAddModal(false)} className="p-1 text-slate-400 hover:text-slate-200 rounded-lg transition">
                 <X className="w-5 h-5" />
               </button>
+            </div>
+
+            {/* Optional: eigener Name */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1">Name der Regel (optional):</label>
+                <input
+                  type="text"
+                  placeholder="wird sonst automatisch erzeugt"
+                  value={ruleName}
+                  onChange={(e) => setRuleName(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 text-xs font-medium"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1">Beschreibung (optional):</label>
+                <input
+                  type="text"
+                  placeholder="sonst wird die Vorschau unten verwendet"
+                  value={ruleDescription}
+                  onChange={(e) => setRuleDescription(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 text-xs font-medium"
+                />
+              </div>
             </div>
 
             {/* SCHRITT 1: WER? */}
@@ -600,7 +580,7 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
                   <label className="block text-[11px] text-slate-400 mb-1">Eigenschaft wählen:</label>
                   <select
                     value={whoType}
-                    onChange={(e: any) => setWhoType(e.target.value)}
+                    onChange={(e) => setWhoType(e.target.value as WhoType)}
                     className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 text-xs font-medium"
                   >
                     <option value="AGE">👤 Alter der Person</option>
@@ -611,14 +591,14 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
                   </select>
                 </div>
 
-                {/* Dynamischer Input für WER */}
+                {/* Je nach Auswahl ein passendes Eingabefeld */}
                 {whoType === 'AGE' && (
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="block text-[11px] text-slate-400 mb-1">Vergleich:</label>
                       <select
                         value={whoAgeOp}
-                        onChange={(e: any) => setWhoAgeOp(e.target.value)}
+                        onChange={(e) => setWhoAgeOp(e.target.value as 'GREATER_THAN' | 'LESS_THAN' | 'EQUALS')}
                         className="w-full px-2.5 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 text-xs"
                       >
                         <option value="GREATER_THAN">älter als (&gt;)</option>
@@ -640,7 +620,7 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
 
                 {whoType === 'GROUP' && (
                   <div>
-                    <label className="block text-[11px] text-slate-400 mb-1">Gruppenname / Klasse:</label>
+                    <label className="block text-[11px] text-slate-400 mb-1">Gruppenname / Klasse (leer = alle Gruppen):</label>
                     <input
                       type="text"
                       placeholder="z.B. Jugend 1 oder Klasse 8a"
@@ -656,7 +636,7 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
                     <label className="block text-[11px] text-slate-400 mb-1">Geschlecht:</label>
                     <select
                       value={whoGenderVal}
-                      onChange={(e: any) => setWhoGenderVal(e.target.value)}
+                      onChange={(e) => setWhoGenderVal(e.target.value as 'maennlich' | 'weiblich' | 'divers')}
                       className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 text-xs font-medium"
                     >
                       <option value="maennlich">Männlich</option>
@@ -693,7 +673,7 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
                   <label className="block text-[11px] text-slate-400 mb-1">Ziel-Ort wählen:</label>
                   <select
                     value={whereType}
-                    onChange={(e: any) => setWhereType(e.target.value)}
+                    onChange={(e) => setWhereType(e.target.value as WhereType)}
                     className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 text-xs font-medium"
                   >
                     <option value="TOP_BUNK">🛏️ Oberes Hochbett</option>
@@ -718,6 +698,13 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
                   </div>
                 )}
               </div>
+
+              {sameRoomWithoutTarget && (
+                <div className="flex items-center gap-1.5 text-[11px] text-amber-300">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span>Für "Zusammen ins selbe Zimmer" bitte oben eine Zielgruppe wählen (z.B. Gruppe oder Alter).</span>
+                </div>
+              )}
             </div>
 
             {/* SCHRITT 3: ZIEL / BEWERTUNG */}
@@ -762,7 +749,7 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
                       <AlertTriangle className="w-4 h-4 text-amber-400" />
                       <span>Dringend vermeiden</span>
                     </div>
-                    <div className="text-[10px] text-slate-400 mt-1">Höchste Priorität zum Vermeiden</div>
+                    <div className="text-[10px] text-slate-400 mt-1">-50 Punkte</div>
                   </button>
 
                   <button
@@ -778,7 +765,7 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
                       <AlertTriangle className="w-4 h-4 text-amber-400" />
                       <span>Eher vermeiden</span>
                     </div>
-                    <div className="text-[10px] text-slate-400 mt-1">Leichte Vermeidung</div>
+                    <div className="text-[10px] text-slate-400 mt-1">-25 Punkte</div>
                   </button>
                 </div>
               </div>
@@ -802,7 +789,7 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
                       <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                       <span>Unbedingt anstreben</span>
                     </div>
-                    <div className="text-[10px] text-slate-400 mt-1">Höchste Priorität (Wunsch)</div>
+                    <div className="text-[10px] text-slate-400 mt-1">+50 Punkte</div>
                   </button>
 
                   <button
@@ -818,7 +805,7 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
                       <CheckCircle2 className="w-4 h-4 text-indigo-400" />
                       <span>Bevorzugen</span>
                     </div>
-                    <div className="text-[10px] text-slate-400 mt-1">Mittlere Priorität (Wunsch)</div>
+                    <div className="text-[10px] text-slate-400 mt-1">+25 Punkte</div>
                   </button>
 
                   <button
@@ -834,7 +821,7 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
                       <CheckCircle2 className="w-4 h-4 text-indigo-400" />
                       <span>Leichter Bonus</span>
                     </div>
-                    <div className="text-[10px] text-slate-400 mt-1">Geringe Priorität</div>
+                    <div className="text-[10px] text-slate-400 mt-1">+10 Punkte</div>
                   </button>
                 </div>
               </div>
@@ -861,7 +848,8 @@ export const RuleEditor: React.FC<RuleEditorProps> = ({ project, onProjectUpdate
               <button
                 type="button"
                 onClick={handleSaveCustomRule}
-                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg shadow-md transition"
+                disabled={sameRoomWithoutTarget}
+                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg shadow-md transition disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Regel aktivieren
               </button>

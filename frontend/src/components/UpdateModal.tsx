@@ -1,3 +1,10 @@
+// ============================================================================
+// UpdateModal – Fenster "Updates & Version"
+// ============================================================================
+// Zeigt die installierte und die neueste Version. In der Windows-Desktop-
+// Version kann man hier das automatische Update starten. Danach fragt das
+// Fenster alle 0,7 Sekunden den Fortschritt ab; während des Neustarts wird
+// alle 1,5 Sekunden geprüft, ob der Server wieder läuft, und dann die Seite neu geladen.
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import type { SystemVersionInfo, UpdateStatusInfo } from '../types';
@@ -39,8 +46,10 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
     }
   }, [initialInfo]);
 
+  // "useEffect" führt Code aus, sobald sich bestimmte Werte ändern (hier: updating/isRestarting).
+  // Solange ein Update läuft, wird regelmäßig der Fortschritt abgefragt.
   useEffect(() => {
-    let interval: any = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
     if (updating && !isRestarting) {
       interval = setInterval(async () => {
         try {
@@ -49,15 +58,15 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
 
           if (status.step === 'RESTARTING') {
             setIsRestarting(true);
-            clearInterval(interval);
+            if (interval) clearInterval(interval);
             pollServerRestart();
           } else if (status.step === 'ERROR') {
             setErrorMsg(status.errorMessage || 'Beim Aktualisieren ist ein Fehler aufgetreten.');
             setUpdating(false);
-            clearInterval(interval);
+            if (interval) clearInterval(interval);
           }
         } catch {
-          // If connection drops momentarily, server might already be restarting
+          // Verbindung kurz weg? Dann startet der Server vermutlich gerade neu – einfach weiter abfragen
         }
       }, 700);
     }
@@ -66,6 +75,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
     };
   }, [updating, isRestarting]);
 
+  /** Wartet, bis der neu gestartete Server wieder antwortet, und lädt dann die Seite neu. */
   const pollServerRestart = () => {
     let attempts = 0;
     const pollInterval = setInterval(async () => {
@@ -79,7 +89,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
           }, 1200);
         }
       } catch {
-        // Still rebooting, keep polling
+        // Server startet noch – weiter warten (höchstens 30 Versuche, also ca. 45 Sekunden)
         if (attempts > 30) {
           clearInterval(pollInterval);
           setErrorMsg('Der Server benötigt länger zum Neustarten. Bitte lade die Seite in wenigen Augenblicken manuell neu.');
@@ -95,7 +105,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
       const fresh = await api.getVersionInfo();
       setInfo(fresh);
       onRefreshInfo();
-    } catch (e: any) {
+    } catch {
       setErrorMsg('Konnte Update-Server nicht erreichen. Bitte Internetverbindung prüfen.');
     } finally {
       setChecking(false);
@@ -147,7 +157,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
               <span className="text-[11px] text-slate-400 uppercase tracking-wider block font-semibold">Installierte Version</span>
               <div className="flex items-center space-x-2 mt-1">
                 <span className="text-lg font-bold font-mono text-slate-100">
-                  v{info?.currentVersion || '1.1.0'}
+                  {info?.currentVersion ? `v${info.currentVersion}` : '…'}
                 </span>
                 {info?.isDesktop ? (
                   <span className="inline-flex items-center gap-1 text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/30">
@@ -165,7 +175,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
               <span className="text-[11px] text-slate-400 uppercase tracking-wider block font-semibold">Neueste Version</span>
               <div className="flex items-center space-x-2 mt-1">
                 <span className="text-lg font-bold font-mono text-slate-100">
-                  v{info?.latestVersion || info?.currentVersion || '1.1.0'}
+                  {info?.latestVersion || info?.currentVersion ? `v${info?.latestVersion || info?.currentVersion}` : '…'}
                 </span>
                 {info?.updateAvailable ? (
                   <span className="inline-flex items-center gap-1 text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30 font-medium">
