@@ -1,5 +1,13 @@
 # Änderungen (Changelog)
 
+## Version 2.1.0 – 15.10.2026
+
+### Neu
+
+* **Gebäude-Vorlage "Seminarhaus Neumühle"** (Hünstetten-Beuerbach), nachgebaut nach den Angaben 5× 2-Bett, 1× 3-Bett, 2× 5-Bett, 1× 6-Bett und 2× 8-Bett, also 11 Zimmer mit 45 Betten.
+  Annahmen, die man nach dem Übernehmen anpassen kann: Erdgeschoss mit Zimmer 1–3, 1. Obergeschoss mit Zimmer 4–7, Dachgeschoss mit Zimmer 8–11. Die 2-Bett-Zimmer haben Einzelbetten, die größeren Zimmer vor allem Hochbetten.
+* **Mitgelieferte Vorlagen:** Die Neumühle und die zwei Beispielgebäude (Gebäude A und B) stehen in jedem Projekt unter "Gebäude & Betten → Aus Vorlage / anderem Projekt" bereit. Sie kommen mit jedem Update mit, auch wenn schon Projekte vorhanden sind. Das Beispielprojekt behält seine zwei Gebäude.
+
 ## Version 2.0.0 – 14.10.2026
 
 Überarbeitung der Version 1.1.0. Schwerpunkt: Die Regeln funktionieren unabhängig voneinander und wirken sich wirklich auf die Verteilung aus.

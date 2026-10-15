@@ -228,45 +228,12 @@ public class ProjectRepository {
         // --- Gebäude, Räume, Betten (24 Betten, alle Räume neutral) -------------
         // Neutral = nicht als Mädchen-/Jungenzimmer markiert. Wer wohin kommt,
         // entscheidet die Optimierung anhand der Regeln.
-        Building b1 = new Building("Gebäude A (Paare & Senioren)");
-
-        Room r1 = new Room("Doppelzimmer 101", 1, false, b1.getName());
-        r1.addDoubleBed("Doppelbett 101");
-
-        Room r2 = new Room("Doppelzimmer 102", 1, false, b1.getName());
-        r2.addDoubleBed("Doppelbett 102");
-
-        Room r3 = new Room("Zweibettzimmer EG-01", 0, false, b1.getName());
-        r3.addSingleBed("Einzelbett EG-01 A");
-        r3.addSingleBed("Einzelbett EG-01 B");
-
-        Room r4 = new Room("Zweibettzimmer EG-02", 0, false, b1.getName());
-        r4.addSingleBed("Einzelbett EG-02 A");
-        r4.addSingleBed("Einzelbett EG-02 B");
-
-        b1.getRooms().add(r1);
-        b1.getRooms().add(r2);
-        b1.getRooms().add(r3);
-        b1.getRooms().add(r4);
-
-        Building b2 = new Building("Gebäude B (Jugendtrakt)");
-        Room r5 = new Room("Zimmer 201", 1, false, b2.getName());
-        r5.addBunkBed("Hochbett 1");
-        r5.addBunkBed("Hochbett 2");
-        r5.addBunkBed("Hochbett 3");
-        r5.addBunkBed("Hochbett 4");
-
-        Room r6 = new Room("Zimmer 202", 1, false, b2.getName());
-        r6.addBunkBed("Hochbett 5");
-        r6.addBunkBed("Hochbett 6");
-        r6.addBunkBed("Hochbett 7");
-        r6.addBunkBed("Hochbett 8");
-
-        b2.getRooms().add(r5);
-        b2.getRooms().add(r6);
-
-        p.getBuildings().add(b1);
-        p.getBuildings().add(b2);
+        // Die beiden Gebäude sind dieselben wie die mitgelieferten Vorlagen
+        // (siehe BuiltInBuildings), bekommen hier aber eigene, neue IDs.
+        for (Building building : List.of(BuiltInBuildings.exampleBuildingA(), BuiltInBuildings.exampleBuildingB())) {
+            building.setId(UUID.randomUUID().toString());
+            p.getBuildings().add(building);
+        }
 
         // --- Regeln: alle 4 Standard-Regeln, eingeschaltet ----------------------
         List<DynamicRule> rules = new ArrayList<>();

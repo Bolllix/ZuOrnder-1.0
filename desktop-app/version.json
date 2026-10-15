@@ -1,6 +1,6 @@
 {
-  "version": "2.0.0",
-  "buildDate": "2026-10-14",
-  "notes": "Version 2.0: Paar-Regel und Geschlechtertrennung lassen sich jetzt unabhängig voneinander schalten, die Optimierung berücksichtigt Paare, Gruppen und Geschlechtertrennung wirklich bei der Verteilung, nicht zugeordnete Personen werden mit Grund angezeigt.",
+  "version": "2.1.0",
+  "buildDate": "2026-10-15",
+  "notes": "Neu in 2.1: Gebäude-Vorlage Seminarhaus Neumühle (11 Zimmer, 45 Betten) unter \"Aus Vorlage\". Aus 2.0: Paar-Regel und Geschlechtertrennung lassen sich jetzt unabhängig voneinander schalten, die Optimierung berücksichtigt Paare, Gruppen und Geschlechtertrennung wirklich bei der Verteilung, nicht zugeordnete Personen werden mit Grund angezeigt.",
   "jarUrl": "https://raw.githubusercontent.com/Bolllix/ZuOrnder-1.0/main/desktop-app/ZuORDNER-Desktop/programm/zuordner-app.jar"
 }

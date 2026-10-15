@@ -1,6 +1,6 @@
 # ZuORDNER – Webanwendung zur automatisierten Zimmer- & Bettenzuordnung
 
-**Version 2.0.0** · Was ist neu? → [CHANGELOG.md](CHANGELOG.md)
+**Version 2.1.0** · Was ist neu? → [CHANGELOG.md](CHANGELOG.md)
 
 Eine datengetriebene Anwendung zur optimalen Verteilung von Teilnehmern auf verfügbare Räume und Betten in Jugendherbergen und Unterkünften. Läuft als Webanwendung oder als Windows-Desktop-Programm (Ordner `desktop-app/`).
 
@@ -11,6 +11,7 @@ Eine datengetriebene Anwendung zur optimalen Verteilung von Teilnehmern auf verf
 1. **Visuelle Gebäude- & Einzelbettenverwaltung**
    * Gebäude, Etagen, Räume (optional als Mädchen- oder Jungenzimmer markiert) und einzelne Betten (Einzelbett, Hochbett Oben/Unten, Doppelbett, Schlafsofa).
    * Gebäude als Vorlage speichern und in anderen Projekten wiederverwenden.
+   * Mitgelieferte Vorlagen: **Seminarhaus Neumühle** (11 Zimmer, 45 Betten) und die zwei Beispielgebäude – im Reiter "Gebäude & Betten" unter "Aus Vorlage / anderem Projekt".
 
 2. **Regelsystem (ohne Codeänderungen)**
    * **4 Praxis-Standards mit eigenem Schalter**, die sich gegenseitig nicht beeinflussen:
@@ -59,7 +60,7 @@ npm run dev
 > Öffnen Sie im Browser: `http://localhost:5173`.
 
 ### 3. Tests ausführen
-Automatisierte Unit- & Szenario-Tests (34 Tests) ausführen:
+Automatisierte Unit- & Szenario-Tests (39 Tests) ausführen:
 
 ```powershell
 .\tools\apache-maven-3.9.6\bin\mvn.cmd test

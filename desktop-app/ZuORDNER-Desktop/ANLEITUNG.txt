@@ -1,5 +1,5 @@
 ===================================================
- ZuORDNER - Lokale Windows Desktop-Version (2.0)
+ ZuORDNER - Lokale Windows Desktop-Version (2.1)
 ===================================================
 
 0. Voraussetzung:
@@ -43,6 +43,11 @@
    - Paare, Gruppen und Geschlechtertrennung werden bei der Verteilung
      wirklich berücksichtigt.
    - Personen ohne Bett werden mit Grund angezeigt.
+
+7. Neu in Version 2.1:
+   - Fertige Gebäude-Vorlage "Seminarhaus Neumühle" (11 Zimmer, 45 Betten):
+     Reiter "Gebäude & Betten" -> "Aus Vorlage / anderem Projekt"
+     -> "Seminarhaus Neumühle" -> "Übernehmen".
 
 Viel Freude mit ZuORDNER!
 ===================================================

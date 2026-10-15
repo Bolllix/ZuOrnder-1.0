@@ -22,7 +22,7 @@
     <groupId>de.zuordner</groupId>
     <artifactId>zuordner-backend</artifactId>
     <!-- Aktuelle Programmversion (Major.Minor.Patch) -->
-    <version>2.0.0</version>
+    <version>2.1.0</version>
     <name>ZuORDNER Backend</name>
     <description>Webanwendung zur automatisierten Zimmer- und Bettenzuordnung</description>
 
