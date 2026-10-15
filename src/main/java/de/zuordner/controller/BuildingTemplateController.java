@@ -10,6 +10,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * ============================================================================
+ * BuildingTemplateController – Gebäude-Vorlagen (wiederverwendbare Gebäude)
+ * ============================================================================
+ * Hat man ein Gebäude einmal mit allen Räumen und Betten angelegt, kann man es
+ * als Vorlage speichern und in anderen Projekten wiederverwenden – oder ein
+ * Gebäude direkt aus einem anderen Projekt kopieren.
+ */
 @RestController
 @CrossOrigin(origins = "*")
 public class BuildingTemplateController {

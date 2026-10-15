@@ -6,6 +6,7 @@ import de.zuordner.model.Bed;
 import de.zuordner.model.Building;
 import de.zuordner.model.Project;
 import de.zuordner.model.Room;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.io.File;
@@ -15,6 +16,15 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * ============================================================================
+ * BuildingTemplateRepository – speichert Gebäude-Vorlagen
+ * ============================================================================
+ * Vorlagen liegen (wie die Projekte) als JSON-Dateien im Ordner
+ * %APPDATA%\ZuORDNER\data\building-templates (bzw. data/building-templates).
+ * Zusätzlich können Gebäude aus allen vorhandenen Projekten als Vorlage
+ * verwendet werden.
+ */
 @Repository
 public class BuildingTemplateRepository {
 
@@ -23,19 +33,32 @@ public class BuildingTemplateRepository {
     private final Path storageDir;
     private final ProjectRepository projectRepository;
 
+    /**
+     * Wird von Spring Boot benutzt ({@code @Autowired} = "diesen Konstruktor nehmen",
+     * nötig, weil es zwei Konstruktoren gibt). Speicherort wie bei den Projekten:
+     * %APPDATA%\ZuORDNER\data\building-templates bzw. data/building-templates.
+     */
+    @Autowired
     public BuildingTemplateRepository(ProjectRepository projectRepository) {
+        this(projectRepository, defaultStorageDir());
+    }
+
+    /** Speicherort selbst festlegen – für automatische Tests mit temporärem Ordner. */
+    public BuildingTemplateRepository(ProjectRepository projectRepository, Path storageDir) {
         this.projectRepository = projectRepository;
         this.objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-
-        String appData = System.getenv("APPDATA");
-        if (appData != null && !appData.trim().isEmpty()) {
-            this.storageDir = Paths.get(appData, "ZuORDNER", "data", "building-templates");
-        } else {
-            this.storageDir = Paths.get("data", "building-templates");
-        }
+        this.storageDir = storageDir;
 
         initStorage();
         loadTemplatesFromDisk();
+    }
+
+    private static Path defaultStorageDir() {
+        String appData = System.getenv("APPDATA");
+        if (appData != null && !appData.trim().isEmpty()) {
+            return Paths.get(appData, "ZuORDNER", "data", "building-templates");
+        }
+        return Paths.get("data", "building-templates");
     }
 
     private void initStorage() {
@@ -71,18 +94,34 @@ public class BuildingTemplateRepository {
         }
     }
 
+    /** Alle gespeicherten Vorlagen (ohne die Gebäude aus Projekten). */
     public List<Building> getAllTemplates() {
         return new ArrayList<>(templates.values());
     }
 
     /**
-     * Sammelt alle verfügbaren Gebäude: gespeicherte Vorlagen PLUS alle Gebäude aus allen bisherigen Projekten!
+     * Sammelt alle verfügbaren Gebäude: mitgelieferte Vorlagen, selbst gespeicherte
+     * Vorlagen PLUS alle Gebäude aus allen bisherigen Projekten!
+     * Das Feld "source" sagt dem Frontend, woher ein Gebäude kommt. Nur Einträge
+     * aus der "Bibliothek" bekommen dort einen Löschen-Knopf.
      */
     public List<Map<String, Object>> getAllAvailableBuildingsWithSource() {
         List<Map<String, Object>> result = new ArrayList<>();
         Set<String> seenNames = new HashSet<>();
 
-        // 1. Zuerst explizit gespeicherte Vorlagen
+        // 0. Fest eingebaute Vorlagen (z.B. Seminarhaus Neumühle) – können nicht gelöscht werden
+        for (Building builtIn : BuiltInBuildings.all()) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("id", builtIn.getId());
+            item.put("name", builtIn.getName());
+            item.put("source", "Mitgelieferte Vorlage");
+            item.put("roomCount", builtIn.getRooms().size());
+            item.put("bedCount", builtIn.getAllBeds().size());
+            item.put("building", builtIn);
+            result.add(item);
+        }
+
+        // 1. Danach explizit gespeicherte Vorlagen
         for (Building t : templates.values()) {
             Map<String, Object> item = new HashMap<>();
             item.put("id", t.getId());
@@ -114,6 +153,7 @@ public class BuildingTemplateRepository {
         return result;
     }
 
+    /** Speichert ein Gebäude als Vorlage (Arbeitsspeicher + Datei). */
     public Building saveTemplate(Building building) {
         if (building.getId() == null || building.getId().trim().isEmpty()) {
             building.setId(UUID.randomUUID().toString());
@@ -123,6 +163,7 @@ public class BuildingTemplateRepository {
         return building;
     }
 
+    /** Löscht eine Vorlage. Gibt false zurück, wenn es sie nicht gab. */
     public boolean deleteTemplate(String id) {
         Building removed = templates.remove(id);
         if (removed != null) {
@@ -148,6 +189,8 @@ public class BuildingTemplateRepository {
 
     /**
      * Erstellt eine saubere Tiefenkopie eines Gebäudes mit neuen UUIDs für Betten und Räume.
+     * "Tiefenkopie" heißt: Auch Räume und Betten werden neu erzeugt. Sonst würden
+     * zwei Projekte dieselben Räume/Betten-Objekte (mit denselben IDs) teilen.
      */
     public Building cloneBuilding(Building source) {
         Building copy = new Building(source.getName());

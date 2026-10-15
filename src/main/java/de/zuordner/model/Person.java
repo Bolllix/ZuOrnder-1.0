@@ -5,18 +5,34 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * ============================================================================
+ * Person – ein Teilnehmer
+ * ============================================================================
+ * Wichtig für die Regeln:
+ *   - gender    : "maennlich", "weiblich" oder "divers" (für die Geschlechtertrennung)
+ *   - partnerId : Paare bekommen dieselbe Paar-ID (z.B. "P1") -> "Paare im selben Zimmer"
+ *   - groupId   : Gruppe/Klasse (z.B. "Klasse 8a")           -> "Gruppenzusammenhalt"
+ *   - age       : z.B. für "Senioren nicht ins obere Hochbett"
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Person {
     private String id;
     private String firstname;
     private String lastname;
-    private String gender; // "maennlich", "weiblich", "divers"
+    /** "maennlich", "weiblich", "divers" */
+    private String gender;
     private int age;
-    private String partnerId; // Pair identifier (e.g. "P1" or UUID)
-    private String groupId;   // Group identifier (e.g. "G1" or "Klasse 8a")
+    /** Paar-Kennung (z.B. "P1"): beide Partner haben dieselbe */
+    private String partnerId;
+    /** Gruppen-Kennung (z.B. "G1" oder "Klasse 8a") */
+    private String groupId;
+    /** Wunsch-Etage (null = egal); Integer statt int, damit "kein Wunsch" möglich ist */
     private Integer desiredFloor;
     private String desiredRoom;
+    /** Besondere Anforderungen, z.B. "Rollstuhl" oder "Asthma" */
     private String specialNeeds;
+    /** Zusätzliche Spalten aus dem Import (Spaltenname -> Wert) */
     private Map<String, Object> customAttributes;
 
     public Person() {
@@ -134,6 +150,7 @@ public class Person {
         this.customAttributes = customAttributes;
     }
 
+    /** "Vorname Nachname" (fehlende Teile werden weggelassen) */
     public String getFullName() {
         return ((firstname != null ? firstname : "") + " " + (lastname != null ? lastname : "")).trim();
     }

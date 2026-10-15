@@ -1,10 +1,38 @@
+// ============================================================================
+// api.ts – alle Aufrufe vom Browser an den Java-Server an EINER Stelle
+// ============================================================================
+// Jede Funktion hier schickt eine Anfrage an eine /api/...-Adresse des Servers
+// (siehe die Controller-Klassen im Java-Code) und gibt die Antwort zurück.
+//
+// "async" / "await": Eine Anfrage übers Netzwerk dauert einen Moment. Mit
+// "await" wartet die Funktion auf die Antwort, ohne die Oberfläche einzufrieren.
+// Das Ergebnis ist ein "Promise" (ein Versprechen auf einen späteren Wert).
+//
+// axios ist eine kleine Bibliothek, die solche HTTP-Anfragen vereinfacht.
 import axios from 'axios';
-import type { Project, Person, DynamicRule, Building, TableData, ImportValidationResult, AssignmentResult, Bed } from '../types';
+import type {
+  Project,
+  Person,
+  DynamicRule,
+  NewDynamicRule,
+  StandardRuleKey,
+  Building,
+  TableData,
+  ImportValidationResult,
+  AssignmentResult,
+  Bed,
+  SystemVersionInfo,
+  UpdateStatusInfo,
+} from '../types';
 
+// Basis-Adresse des Servers. Normalerweise "/api" (gleicher Server wie die Webseite).
+// Über die Umgebungsvariable VITE_API_URL kann man beim Bauen eine andere Adresse setzen.
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 export const api = {
-  // Projects
+  // --------------------------------------------------------------------------
+  // Projekte
+  // --------------------------------------------------------------------------
   getProjects: async (): Promise<Project[]> => {
     const res = await axios.get(`${API_BASE}/projects`);
     return res.data;
@@ -29,7 +57,9 @@ export const api = {
     await axios.delete(`${API_BASE}/projects/${id}`);
   },
 
-  // Buildings & Rooms & Beds
+  // --------------------------------------------------------------------------
+  // Gebäude, Räume und Betten
+  // --------------------------------------------------------------------------
   addBuilding: async (projectId: string, building: Partial<Building>): Promise<Project> => {
     const res = await axios.post(`${API_BASE}/projects/${projectId}/buildings`, building);
     return res.data;
@@ -60,7 +90,9 @@ export const api = {
     return res.data;
   },
 
-  // Building Templates & Reusable Buildings
+  // --------------------------------------------------------------------------
+  // Gebäude-Vorlagen (wiederverwendbare Gebäude)
+  // --------------------------------------------------------------------------
   getBuildingTemplates: async (): Promise<Array<{ id: string; name: string; source: string; roomCount: number; bedCount: number; building: Building }>> => {
     const res = await axios.get(`${API_BASE}/building-templates`);
     return res.data;
@@ -80,12 +112,15 @@ export const api = {
     return res.data;
   },
 
-  // Persons
+  // --------------------------------------------------------------------------
+  // Teilnehmer
+  // --------------------------------------------------------------------------
   addPerson: async (projectId: string, person: Partial<Person>): Promise<Project> => {
     const res = await axios.post(`${API_BASE}/projects/${projectId}/persons`, person);
     return res.data;
   },
 
+  /** Mehrere Personen auf einmal speichern (letzter Schritt des Import-Assistenten) */
   savePersons: async (projectId: string, persons: Person[]): Promise<Project> => {
     const res = await axios.post(`${API_BASE}/projects/${projectId}/import/save`, persons);
     return res.data;
@@ -101,8 +136,11 @@ export const api = {
     return res.data;
   },
 
-  // Rules
-  addRule: async (projectId: string, rule: DynamicRule): Promise<Project> => {
+  // --------------------------------------------------------------------------
+  // Regeln
+  // --------------------------------------------------------------------------
+  /** Neue Regel anlegen – OHNE ID, die eindeutige ID vergibt der Server. */
+  addRule: async (projectId: string, rule: NewDynamicRule): Promise<Project> => {
     const res = await axios.post(`${API_BASE}/projects/${projectId}/rules`, rule);
     return res.data;
   },
@@ -117,8 +155,21 @@ export const api = {
     return res.data;
   },
 
-  // Import Pipeline
+  /**
+   * Schaltet GENAU EINE der 4 Standard-Regeln an oder aus.
+   * Gibt es sie im Projekt noch nicht, legt der Server sie automatisch an.
+   */
+  setStandardRuleActive: async (projectId: string, key: StandardRuleKey, active: boolean): Promise<Project> => {
+    const res = await axios.put(`${API_BASE}/projects/${projectId}/rules/standard/${key}`, { active });
+    return res.data;
+  },
+
+  // --------------------------------------------------------------------------
+  // Excel/CSV-Import
+  // --------------------------------------------------------------------------
+  /** Datei hochladen und die ersten Zeilen als Vorschau bekommen */
   parseTable: async (projectId: string, file: File, headerRowIndex: number = 0, maxRows: number = 10): Promise<TableData> => {
+    // FormData = "Formular" mit Datei, wie bei einem Upload-Formular auf einer Webseite
     const formData = new FormData();
     formData.append('file', file);
     formData.append('headerRowIndex', headerRowIndex.toString());
@@ -129,6 +180,7 @@ export const api = {
     return res.data;
   },
 
+  /** Komplette Datei mit der gewählten Spaltenzuordnung in Personen umwandeln (noch NICHT speichern) */
   mapColumns: async (projectId: string, file: File, columnMapping: Record<string, string>, headerRowIndex: number = 0): Promise<ImportValidationResult> => {
     const formData = new FormData();
     formData.append('file', file);
@@ -145,16 +197,20 @@ export const api = {
     return res.data;
   },
 
-  // Optimization Assignment Engine
+  // --------------------------------------------------------------------------
+  // Belegung berechnen & exportieren
+  // --------------------------------------------------------------------------
   calculateAssignment: async (projectId: string): Promise<AssignmentResult> => {
     const res = await axios.post(`${API_BASE}/projects/${projectId}/assignment/calculate`);
     return res.data;
   },
 
+  /** Lädt die Excel-Datei und löst im Browser den Download aus */
   exportExcel: async (projectId: string, projectName: string): Promise<void> => {
     const res = await axios.get(`${API_BASE}/projects/${projectId}/assignment/export/excel`, {
-      responseType: 'blob',
+      responseType: 'blob', // Antwort ist eine Datei, kein JSON
     });
+    // Trick für Downloads: unsichtbaren Link erzeugen, anklicken, wieder entfernen
     const url = window.URL.createObjectURL(new Blob([res.data]));
     const link = document.createElement('a');
     link.href = url;
@@ -165,8 +221,10 @@ export const api = {
     window.URL.revokeObjectURL(url);
   },
 
-  // System & Update Management
-  getVersionInfo: async (): Promise<import('../types').SystemVersionInfo> => {
+  // --------------------------------------------------------------------------
+  // System: Version & automatisches Update (nur Windows-Desktop-Version)
+  // --------------------------------------------------------------------------
+  getVersionInfo: async (): Promise<SystemVersionInfo> => {
     const res = await axios.get(`${API_BASE}/system/version`);
     return res.data;
   },
@@ -176,7 +234,7 @@ export const api = {
     return res.data;
   },
 
-  getUpdateStatus: async (): Promise<import('../types').UpdateStatusInfo> => {
+  getUpdateStatus: async (): Promise<UpdateStatusInfo> => {
     const res = await axios.get(`${API_BASE}/system/update-status`);
     return res.data;
   },

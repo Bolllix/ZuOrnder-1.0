@@ -1,3 +1,13 @@
+// ============================================================================
+// App.tsx – die Hauptkomponente der Oberfläche
+// ============================================================================
+// Hier liegt der "zentrale Zustand" der App: alle Projekte, das gerade
+// gewählte Projekt und der aktive Reiter. Die einzelnen Bereiche (Gebäude,
+// Teilnehmer, Import, Regeln, Belegung) bekommen das Projekt als "Prop"
+// (Eingabewert) und melden Änderungen über onProjectUpdate zurück.
+//
+// React-Grundidee: Die Oberfläche wird aus dem Zustand berechnet. Ändert man
+// den Zustand (z.B. mit setActiveTab), zeichnet React die Seite automatisch neu.
 import React, { useEffect, useState } from 'react';
 import type { Project, SystemVersionInfo } from './types';
 import { api } from './services/api';
@@ -19,6 +29,10 @@ export const App: React.FC = () => {
   const [versionInfo, setVersionInfo] = useState<SystemVersionInfo | null>(null);
   const [loading, setLoading] = useState(true);
 
+  /**
+   * Lädt alle Projekte vom Server. Ist schon ein Projekt ausgewählt, wird dessen
+   * frische Version übernommen, sonst das erste Projekt gewählt.
+   */
   const fetchProjects = async () => {
     try {
       const data = await api.getProjects();
@@ -41,6 +55,7 @@ export const App: React.FC = () => {
     }
   };
 
+  /** Fragt die Programmversion ab (und ob es ein Update gibt). */
   const fetchVersionInfo = async () => {
     try {
       const v = await api.getVersionInfo();
@@ -50,16 +65,22 @@ export const App: React.FC = () => {
     }
   };
 
+  // Einmal beim Start der Seite ausführen (leere Liste [] = nur beim ersten Anzeigen).
+  // Die Linter-Warnung "fehlende Abhängigkeit" ist hier gewollt abgeschaltet:
+  // Wir wollen die Daten genau EINMAL laden, nicht bei jeder Änderung erneut.
   useEffect(() => {
     fetchProjects();
     fetchVersionInfo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /** Wird von allen Bereichen aufgerufen, wenn der Server ein geändertes Projekt zurückgibt. */
   const handleProjectUpdate = (updated: Project) => {
     setCurrentProject(updated);
     setProjects((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
   };
 
+  /** Projekt aus der Liste entfernen; war es ausgewählt, das nächste wählen. */
   const handleProjectDeleted = (deletedId: string) => {
     const remaining = projects.filter((p) => p.id !== deletedId);
     setProjects(remaining);
@@ -80,7 +101,7 @@ export const App: React.FC = () => {
         onOpenUpdateModal={() => setIsUpdateModalOpen(true)}
       />
 
-      {/* Main Content Area */}
+      {/* Hauptbereich: je nach aktivem Reiter wird eine andere Komponente angezeigt */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
           <div className="flex items-center justify-center h-64 text-slate-400">

@@ -7,15 +7,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * ============================================================================
+ * Room – ein Raum/Zimmer mit seinen Betten
+ * ============================================================================
+ * Ein Raum kann als Mädchenzimmer oder Jungenzimmer markiert werden. Das wirkt
+ * sich nur aus, wenn die Standard-Regel "Geschlechtertrennung" eingeschaltet
+ * ist: Dann schlafen in einem Mädchenzimmer nur Mädchen/Frauen und in einem
+ * Jungenzimmer nur Jungen/Männer. Unmarkierte Räume werden bei der
+ * Optimierung automatisch passend belegt.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Room {
     private String id;
     private String name;
+    /** Etage: 0 = Erdgeschoss, 1 = 1. Stock, ... */
     private int floor;
     private String buildingName;
     private boolean girlsRoom;
     private boolean boysRoom;
     private List<Bed> beds;
+    /** Freie Zusatzangaben (z.B. "barrierefrei" -> true) für eigene Regeln */
     private Map<String, Object> customAttributes;
 
     public Room() {
@@ -96,10 +108,12 @@ public class Room {
         this.customAttributes = customAttributes;
     }
 
+    /** Anzahl der Betten = wie viele Personen in den Raum passen */
     public int getCapacity() {
         return beds.size();
     }
 
+    /** Fügt ein Bett hinzu und überträgt Raumname, Etage und Gebäudename auf das Bett. */
     public void addBed(Bed bed) {
         bed.setRoomName(this.name);
         bed.setFloor(this.floor);
@@ -107,15 +121,18 @@ public class Room {
         this.beds.add(bed);
     }
 
+    /** Fügt ein Einzelbett hinzu. */
     public void addSingleBed(String bedName) {
         addBed(new Bed(bedName, BedType.SINGLE, this.name, this.floor, this.buildingName));
     }
 
+    /** Ein Doppelbett hat 2 Schlafplätze (A und B) – also 2 Bett-Einträge. */
     public void addDoubleBed(String bedNamePrefix) {
         addBed(new Bed(bedNamePrefix + " (A)", BedType.DOUBLE, this.name, this.floor, this.buildingName));
         addBed(new Bed(bedNamePrefix + " (B)", BedType.DOUBLE, this.name, this.floor, this.buildingName));
     }
 
+    /** Ein Hochbett/Etagenbett hat 2 Schlafplätze (unten und oben). */
     public void addBunkBed(String bunkNamePrefix) {
         addBed(new Bed(bunkNamePrefix + " (Unten)", BedType.BOTTOM_BUNK, this.name, this.floor, this.buildingName));
         addBed(new Bed(bunkNamePrefix + " (Oben)", BedType.TOP_BUNK, this.name, this.floor, this.buildingName));

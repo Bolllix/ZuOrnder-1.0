@@ -8,6 +8,19 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * ============================================================================
+ * PersonController – Teilnehmer eines Projekts verwalten
+ * ============================================================================
+ * Endpunkte (alle unter /api/projects/{projectId}/persons):
+ *   GET    /             -> alle Teilnehmer
+ *   POST   /             -> einen Teilnehmer hinzufügen
+ *   POST   /batch        -> mehrere Teilnehmer auf einmal (siehe ImportController)
+ *   PUT    /{personId}   -> Teilnehmer ändern
+ *   DELETE /{personId}   -> Teilnehmer löschen
+ * Fast alle Methoden geben danach das komplette, gespeicherte Projekt zurück,
+ * damit das Frontend sofort den neuesten Stand anzeigen kann.
+ */
 @RestController
 @RequestMapping("/api/projects/{projectId}/persons")
 @CrossOrigin(origins = "*")
@@ -26,6 +39,7 @@ public class PersonController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /** Fügt einen Teilnehmer hinzu (ohne mitgeschickte ID wird automatisch eine erzeugt). */
     @PostMapping
     public ResponseEntity<Project> addPerson(@PathVariable String projectId, @RequestBody Person person) {
         return projectRepository.getProjectById(projectId)
@@ -37,6 +51,7 @@ public class PersonController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /** Mehrere Teilnehmer auf einmal hinzufügen (der Import-Assistent nutzt /import/save). */
     @PostMapping("/batch")
     public ResponseEntity<Project> addPersonsBatch(@PathVariable String projectId, @RequestBody List<Person> persons) {
         return projectRepository.getProjectById(projectId)
@@ -48,6 +63,7 @@ public class PersonController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /** Ersetzt die Daten eines Teilnehmers (die ID bleibt gleich). */
     @PutMapping("/{personId}")
     public ResponseEntity<Project> updatePerson(@PathVariable String projectId, @PathVariable String personId, @RequestBody Person updated) {
         return projectRepository.getProjectById(projectId)
@@ -65,6 +81,7 @@ public class PersonController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /** Löscht einen Teilnehmer. */
     @DeleteMapping("/{personId}")
     public ResponseEntity<Project> deletePerson(@PathVariable String projectId, @PathVariable String personId) {
         return projectRepository.getProjectById(projectId)

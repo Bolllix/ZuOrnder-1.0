@@ -13,6 +13,19 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * ============================================================================
+ * ImportController – Teilnehmerlisten aus Excel/CSV importieren
+ * ============================================================================
+ * Der Import-Assistent im Frontend ruft diese Endpunkte nacheinander auf:
+ *   1. POST .../import/sheets   -> Welche Tabellenblätter hat die Datei?
+ *   2. POST .../import/preview  -> Die ersten Zeilen als Vorschau
+ *   3. POST .../import/map      -> Spaltenzuordnung anwenden, Personen + Warnungen zurück
+ *   4. POST .../import/save     -> Die geprüften Personen ins Projekt übernehmen
+ * Jede Adresse gibt es zweimal: mit Projekt (/api/projects/{projectId}/import/...)
+ * und ohne (/api/import/...). Die eigentliche Arbeit machen ExcelCsvImporter und
+ * TableMappingService.
+ */
 @RestController
 @CrossOrigin(origins = "*")
 public class ImportController {
@@ -29,6 +42,7 @@ public class ImportController {
         this.objectMapper = new ObjectMapper();
     }
 
+    /** Schritt 1: Namen aller Tabellenblätter (bei CSV nur eins). */
     @PostMapping({"/api/import/sheets", "/api/projects/{projectId}/import/sheets"})
     public ResponseEntity<List<String>> getSheetNames(
             @PathVariable(required = false) String projectId,
@@ -42,6 +56,7 @@ public class ImportController {
         }
     }
 
+    /** Schritt 2: Vorschau der ersten Zeilen (maxRows, Standard 10). */
     @PostMapping({"/api/import/preview", "/api/projects/{projectId}/import/preview"})
     public ResponseEntity<TableData> getPreview(
             @PathVariable(required = false) String projectId,
@@ -58,6 +73,10 @@ public class ImportController {
         }
     }
 
+    /**
+     * Schritt 3: Datei komplett einlesen und die Spaltenzuordnung anwenden.
+     * columnMapping kommt als JSON-Text, z.B. {"Vorname":"firstname","Alter":"age"}.
+     */
     @PostMapping({"/api/import/map", "/api/projects/{projectId}/import/map"})
     public ResponseEntity<ImportValidationResult> mapAndValidate(
             @PathVariable(required = false) String projectId,
@@ -66,7 +85,7 @@ public class ImportController {
             @RequestParam(value = "headerRowIndex", defaultValue = "0") int headerRowIndex,
             @RequestParam("columnMapping") String columnMappingJson) {
         try {
-            // maxRows = 0 parses ALL rows in the table
+            // maxRows = 0 -> ALLE Zeilen einlesen (nicht nur die Vorschau)
             TableData fullData = importer.readTablePreview(file.getInputStream(), file.getOriginalFilename(), sheetName, headerRowIndex, 0);
             Map<String, String> mapping = objectMapper.readValue(columnMappingJson, new TypeReference<Map<String, String>>() {});
             ImportValidationResult result = mappingService.mapTableToPersons(fullData, mapping);
@@ -77,6 +96,7 @@ public class ImportController {
         }
     }
 
+    /** Alternative zu Schritt 3: Tabelle wird direkt als JSON geschickt (statt als Datei). */
     @PostMapping({"/api/import/process", "/api/projects/{projectId}/import/process"})
     public ResponseEntity<ImportValidationResult> processImport(
             @PathVariable(required = false) String projectId,
@@ -91,7 +111,13 @@ public class ImportController {
         }
     }
 
-    @PostMapping({"/api/import/project/{projectId}", "/api/projects/{projectId}/import/save", "/api/projects/{projectId}/persons/batch"})
+    /**
+     * Schritt 4: Personen ins Projekt übernehmen.
+     * (Die Adresse .../persons/batch gehört zum PersonController – sie stand
+     * früher zusätzlich hier und war dadurch doppelt vergeben, was Spring mit
+     * einem Fehler "Ambiguous handler methods" beantwortet.)
+     */
+    @PostMapping({"/api/import/project/{projectId}", "/api/projects/{projectId}/import/save"})
     public ResponseEntity<Project> importToProject(
             @PathVariable String projectId,
             @RequestBody List<Person> personsToImport) {
@@ -104,6 +130,7 @@ public class ImportController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /** Daten für /import/process: Überschriften, Zeilen und Spaltenzuordnung. */
     public static class TableMappingRequest {
         private List<String> headers;
         private List<List<String>> rows;

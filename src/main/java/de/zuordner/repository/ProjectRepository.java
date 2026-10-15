@@ -9,36 +9,77 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * ============================================================================
+ * ProjectRepository – lädt und speichert alle Projekte
+ * ============================================================================
+ * Jedes Projekt wird als eigene JSON-Datei gespeichert (JSON = Textformat,
+ * das man auch mit einem Editor öffnen kann). Speicherort:
+ *   - Windows-Desktop-Version: %APPDATA%\ZuORDNER\data\projects\  (bleibt bei Updates erhalten)
+ *   - sonst (z.B. Entwicklung):  data/projects/ im Programmordner
+ *
+ * Beim Start werden alle Dateien eingelesen und im Arbeitsspeicher gehalten
+ * (in der Map {@link #projects}). Jede Änderung wird sofort wieder auf die
+ * Festplatte geschrieben.
+ *
+ * {@code @Repository} ist für Spring Boot ein Hinweis: "Diese Klasse kümmert
+ * sich um das Speichern von Daten" – Spring erzeugt automatisch ein Objekt davon.
+ */
 @Repository
 public class ProjectRepository {
 
+    /** ID des mitgelieferten Beispielprojekts */
+    public static final String SAMPLE_PROJECT_ID = "sample-project-01";
+
+    /** Alle Projekte im Arbeitsspeicher: Projekt-ID -> Projekt */
     private final Map<String, Project> projects = new ConcurrentHashMap<>();
+    /** Wandelt Java-Objekte in JSON-Text um und zurück (INDENT_OUTPUT = schön eingerückt) */
     private final ObjectMapper objectMapper;
+    /** Ordner, in dem die Projektdateien liegen */
     private final Path storageDir;
 
+    /** Wird von Spring Boot benutzt: Speicherort automatisch wählen (siehe defaultStorageDir). */
     public ProjectRepository() {
+        this(defaultStorageDir());
+    }
+
+    /**
+     * Speicherort selbst festlegen – praktisch für automatische Tests, die in
+     * einen temporären Ordner schreiben sollen statt in die echten Projektdaten.
+     */
+    public ProjectRepository(Path storageDir) {
         this.objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-        
-        String appData = System.getenv("APPDATA");
-        if (appData != null && !appData.trim().isEmpty()) {
-            this.storageDir = Paths.get(appData, "ZuORDNER", "data", "projects");
-        } else {
-            this.storageDir = Paths.get("data", "projects");
-        }
+        this.storageDir = storageDir;
 
         initStorage();
         loadProjectsFromDisk();
 
-        // Always ensure sample project exists
-        if (projects.isEmpty() || !projects.containsKey("sample-project-01")) {
+        // Beim allerersten Start (noch gar keine Projekte) das Beispielprojekt anlegen.
+        // Löscht man das Beispielprojekt später, kommt es nicht ungefragt zurück.
+        if (projects.isEmpty()) {
             Project sample = createSampleProject();
             saveProject(sample);
         }
     }
 
+    /**
+     * Standard-Speicherort: Unter Windows gibt es die Umgebungsvariable APPDATA
+     * (z.B. C:\Users\Max\AppData\Roaming) – dort bleiben die Daten auch bei Updates
+     * erhalten. Sonst wird der Ordner data/projects im Programmordner benutzt.
+     */
+    private static Path defaultStorageDir() {
+        String appData = System.getenv("APPDATA");
+        if (appData != null && !appData.trim().isEmpty()) {
+            return Paths.get(appData, "ZuORDNER", "data", "projects");
+        }
+        return Paths.get("data", "projects");
+    }
+
+    /** Legt den Speicherordner an, falls er noch nicht existiert. */
     private void initStorage() {
         try {
             if (!Files.exists(storageDir)) {
@@ -49,6 +90,11 @@ public class ProjectRepository {
         }
     }
 
+    /**
+     * Liest alle *.json-Dateien aus dem Speicherordner ein. Alte Dateien aus
+     * Version 1.x werden dabei automatisch repariert ({@link ProjectMigration});
+     * vorher wird eine Sicherheitskopie "*.json.v1-backup" angelegt.
+     */
     private void loadProjectsFromDisk() {
         try {
             File dir = storageDir.toFile();
@@ -59,6 +105,10 @@ public class ProjectRepository {
                         try {
                             Project project = objectMapper.readValue(f, Project.class);
                             if (project != null && project.getId() != null) {
+                                if (ProjectMigration.migrate(project)) {
+                                    backupBeforeMigration(f);
+                                    saveProjectToDisk(project);
+                                }
                                 projects.put(project.getId(), project);
                             }
                         } catch (Exception e) {
@@ -72,14 +122,33 @@ public class ProjectRepository {
         }
     }
 
+    /** Kopiert eine Projektdatei nach "<name>.v1-backup" (nur einmal, eine vorhandene Kopie bleibt). */
+    private void backupBeforeMigration(File original) {
+        try {
+            Path backup = original.toPath().resolveSibling(original.getName() + ".v1-backup");
+            if (!Files.exists(backup)) {
+                Files.copy(original.toPath(), backup, StandardCopyOption.COPY_ATTRIBUTES);
+            }
+        } catch (Exception e) {
+            System.err.println("Sicherheitskopie von " + original.getName() + " fehlgeschlagen: " + e.getMessage());
+        }
+    }
+
+    /** Liefert alle Projekte als Liste. */
     public List<Project> getAllProjects() {
         return new ArrayList<>(projects.values());
     }
 
+    /**
+     * Sucht ein Projekt anhand seiner ID. "Optional" ist eine Hülle, die entweder
+     * ein Projekt enthält oder leer ist (statt null) – so vergisst man die
+     * "nicht gefunden"-Prüfung nicht so leicht.
+     */
     public Optional<Project> getProjectById(String id) {
         return Optional.ofNullable(projects.get(id));
     }
 
+    /** Speichert ein Projekt (neu oder geändert) im Arbeitsspeicher UND auf der Festplatte. */
     public Project saveProject(Project project) {
         if (project.getId() == null || project.getId().trim().isEmpty()) {
             project.setId(UUID.randomUUID().toString());
@@ -89,6 +158,7 @@ public class ProjectRepository {
         return project;
     }
 
+    /** Löscht ein Projekt samt Datei. Gibt false zurück, wenn es das Projekt nicht gab. */
     public boolean deleteProject(String id) {
         Project removed = projects.remove(id);
         if (removed != null) {
@@ -103,6 +173,7 @@ public class ProjectRepository {
         return false;
     }
 
+    /** Schreibt ein Projekt als "<id>.json" in den Speicherordner. */
     private void saveProjectToDisk(Project project) {
         try {
             Path filePath = storageDir.resolve(project.getId() + ".json");
@@ -112,120 +183,63 @@ public class ProjectRepository {
         }
     }
 
-    public Project createSampleProject() {
-        Project p = new Project("Muster-Jugendherberge (Vollständig)", "Test-Projekt mit 22 Teilnehmern (Max Mustermann & Co.), 3 Gebäuden und allen Harte/Weiche Regeln.");
-        p.setId("sample-project-01");
+    /**
+     * Baut das Beispielprojekt "Muster-Jugendherberge", mit dem man alle
+     * Standard-Regeln ausprobieren kann:
+     *  - 2 Paare (eins davon Senioren) -> Paar-Regel + Paar-Ausnahme bei Geschlechtertrennung
+     *  - 2 einzelne Senioren          -> Senioren-Regel (nicht ins obere Hochbett)
+     *  - 8 Jungen, 8 Mädchen in Gruppen -> Gruppen-Regel + Geschlechtertrennung
+     * Es gibt genug passende Betten, sodass ALLE Regeln gleichzeitig erfüllt werden können.
+     * ("static" = man braucht dafür kein ProjectRepository-Objekt, praktisch für Tests.)
+     */
+    public static Project createSampleProject() {
+        Project p = new Project("Muster-Jugendherberge (Vollständig)",
+                "Beispielprojekt mit 22 Teilnehmern (2 Paare, Senioren, Jungen- und Mädchengruppe), "
+                        + "2 Gebäuden und allen Standard-Regeln.");
+        p.setId(SAMPLE_PROJECT_ID);
 
-        // 22 Participants with clean Mustermann names testing ALL rules
+        // --- Teilnehmer ---------------------------------------------------------
         List<Person> persons = new ArrayList<>();
 
-        // Couple 1 (Seniors)
+        // Paar 1 (Senioren)
         persons.add(new Person("Mustermann", "Max", "maennlich", 72, "PAAR_MUSTERMANN"));
         persons.add(new Person("Musterfrau", "Erika", "weiblich", 70, "PAAR_MUSTERMANN"));
 
-        // Couple 2 (Young Adults)
+        // Paar 2 (junge Erwachsene)
         persons.add(new Person("Mustermann", "Felix", "maennlich", 28, "PAAR_FELIX_LISA"));
         persons.add(new Person("Musterfrau", "Lisa", "weiblich", 26, "PAAR_FELIX_LISA"));
 
-        // Single Seniors (>65) -> Tests Senior Bottom Bunk Rule
+        // Einzelne Senioren (> 65) -> testet "Senioren nicht ins obere Hochbett"
         persons.add(new Person("Mustermann", "Otto", "maennlich", 78, null, "Senioren-Club"));
         persons.add(new Person("Musterfrau", "Gerti", "weiblich", 75, null, "Senioren-Club"));
 
-        // Boys Group (8 members) -> Tests Boys Room & Group Rules
+        // Jungengruppe (8 Personen) -> testet Gruppen-Regel und Geschlechtertrennung
         for (int i = 1; i <= 8; i++) {
-            persons.add(new Person("Mustermann", "Junge " + i, "maennlich", 16 + i, null, "Jugendgruppe-Jungs"));
+            persons.add(new Person("Mustermann", "Junge " + i, "maennlich", 12 + i, null, "Jugendgruppe-Jungs"));
         }
 
-        // Girls Group (8 members) -> Tests Girls Room & Group Rules
+        // Mädchengruppe (8 Personen)
         for (int i = 1; i <= 8; i++) {
-            persons.add(new Person("Musterfrau", "Mädchen " + i, "weiblich", 15 + i, null, "Jugendgruppe-Mädels"));
+            persons.add(new Person("Musterfrau", "Mädchen " + i, "weiblich", 12 + i, null, "Jugendgruppe-Mädels"));
         }
 
         p.setPersons(persons);
 
-        // Buildings & Rooms setup (Total 22 beds) - Neutral rooms dynamically assigned by optimization
-        Building b1 = new Building("Gebäude A (EG & OG)");
-        Room r1 = new Room("Raum EG-01", 0, false, b1.getName());
-        r1.addSingleBed("Einzelbett EG-1");
-        r1.addSingleBed("Einzelbett EG-2");
-        r1.addSingleBed("Einzelbett EG-3");
-        r1.addSingleBed("Einzelbett EG-4");
+        // --- Gebäude, Räume, Betten (24 Betten, alle Räume neutral) -------------
+        // Neutral = nicht als Mädchen-/Jungenzimmer markiert. Wer wohin kommt,
+        // entscheidet die Optimierung anhand der Regeln.
+        // Die beiden Gebäude sind dieselben wie die mitgelieferten Vorlagen
+        // (siehe BuiltInBuildings), bekommen hier aber eigene, neue IDs.
+        for (Building building : List.of(BuiltInBuildings.exampleBuildingA(), BuiltInBuildings.exampleBuildingB())) {
+            building.setId(UUID.randomUUID().toString());
+            p.getBuildings().add(building);
+        }
 
-        Room r2 = new Room("Raum 101", 1, false, b1.getName());
-        r2.addDoubleBed("Doppelbett 1");
-        r2.addDoubleBed("Doppelbett 2");
-
-        b1.getRooms().add(r1);
-        b1.getRooms().add(r2);
-
-        Building b2 = new Building("Gebäude B (Jugendtrakt)");
-        Room r3 = new Room("Zimmer 201", 1, false, b2.getName());
-        r3.addBunkBed("Hochbett 1");
-        r3.addBunkBed("Hochbett 2");
-        r3.addBunkBed("Hochbett 3");
-        r3.addBunkBed("Hochbett 4");
-
-        Room r4 = new Room("Zimmer 202", 1, false, b2.getName());
-        r4.addBunkBed("Hochbett 5");
-        r4.addBunkBed("Hochbett 6");
-        r4.addBunkBed("Hochbett 7");
-        r4.addBunkBed("Hochbett 8");
-
-        b2.getRooms().add(r3);
-        b2.getRooms().add(r4);
-
-        p.getBuildings().add(b1);
-        p.getBuildings().add(b2);
-
-        // Default Rules Configuration
+        // --- Regeln: alle 4 Standard-Regeln, eingeschaltet ----------------------
         List<DynamicRule> rules = new ArrayList<>();
-
-        // Standard-Regel 1: HARTE GESCHLECHTERTRENNUNG MIT PAAR-AUSNAHME
-        DynamicRule hardGenderRule = new DynamicRule(
-                "Harte Geschlechtertrennung (mit Paar-Ausnahme)",
-                "Unangemeldete Männer und Frauen dürfen nicht im selben Zimmer untergebracht werden. Angemeldete Paare (gleiche Paar-ID) bilden die einzige zulässige Ausnahme.",
-                RuleType.HARD,
-                TargetScope.ROOM_PERSON,
-                RuleAction.FORBID,
-                -999999
-        );
-        rules.add(hardGenderRule);
-
-        // Standard-Regel 2: HARTE REGEL: Senioren (>65 Jahre) nicht im oberen Hochbett
-        DynamicRule seniorTopBunkRule = new DynamicRule(
-                "Senioren nicht im oberen Hochbett",
-                "Personen ab 65 Jahren dürfen aus Sicherheitsgründen nicht im oberen Hochbett schlafen.",
-                RuleType.HARD,
-                TargetScope.BED_PERSON,
-                RuleAction.FORBID,
-                -999999
-        );
-        seniorTopBunkRule.addCondition(new Condition("person.age", Operator.GREATER_THAN, 65));
-        seniorTopBunkRule.addCondition(new Condition("bed.isTopBunk", Operator.EQUALS, true));
-        rules.add(seniorTopBunkRule);
-
-        // Standard-Regel 3: WEICHE REGEL: Paare im selben Zimmer
-        DynamicRule coupleRule = new DynamicRule(
-                "Paare im selben Zimmer",
-                "Personen mit der gleichen Paar-ID sollen bevorzugt im selben Zimmer untergebracht werden (+50 Punkte).",
-                RuleType.SOFT,
-                TargetScope.PAIR_CO_LOCATION,
-                RuleAction.ADD_POINTS,
-                50
-        );
-        rules.add(coupleRule);
-
-        // Standard-Regel 4: WEICHE REGEL: Gruppen im selben Zimmer
-        DynamicRule groupRule = new DynamicRule(
-                "Gruppenzusammenhalt im Zimmer",
-                "Personen der gleichen Gruppe sollen bevorzugt im selben Zimmer untergebracht werden (+20 Punkte).",
-                RuleType.SOFT,
-                TargetScope.GROUP_CO_LOCATION,
-                RuleAction.ADD_POINTS,
-                20
-        );
-        rules.add(groupRule);
-
+        for (StandardRule standard : StandardRule.values()) {
+            rules.add(standard.createDefaultRule());
+        }
         p.setRules(rules);
         return p;
     }

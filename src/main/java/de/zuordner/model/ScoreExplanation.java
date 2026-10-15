@@ -1,5 +1,13 @@
 package de.zuordner.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+/**
+ * Eine Begründung im Ergebnis, z.B. "Paare im selben Zimmer: +50 Punkte,
+ * weil Partnerin Erika im selben Zimmer ist". Wird im Dashboard angezeigt,
+ * wenn man auf ein belegtes Bett klickt.
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ScoreExplanation {
     private String ruleId;
     private String ruleName;

@@ -1,3 +1,12 @@
+// ============================================================================
+// ImportWizard – Teilnehmer aus Excel/CSV importieren (Reiter "Excel/CSV Import")
+// ============================================================================
+// Ablauf in Schritten:
+//   1. Datei auswählen          -> Server liest die ersten Zeilen (Vorschau)
+//   2./3. Überschriften-Zeile wählen und Vorschau prüfen
+//   4. Spalten zuordnen          (z.B. Spalte "Alter" -> Feld "Alter")
+//   5. Prüfergebnis ansehen      -> Server wandelt ALLE Zeilen um, zeigt Warnungen
+//   6. Import abgeschlossen      -> Personen sind im Projekt gespeichert
 import React, { useState } from 'react';
 import type { Project, TableData, ImportValidationResult } from '../types';
 import { api } from '../services/api';
@@ -17,6 +26,7 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({ project, onProjectUp
   const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
   const [validationResult, setValidationResult] = useState<ImportValidationResult | null>(null);
 
+  // Felder, denen man eine Spalte zuordnen kann (value = Name, den der Server erwartet)
   const availableAttributes = [
     { value: 'IGNORE', label: '-- Spalte ignorieren --' },
     { value: 'firstname', label: 'Vorname *' },
@@ -31,7 +41,7 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({ project, onProjectUp
     { value: 'specialneeds', label: 'Besondere Anforderungen' },
   ];
 
-  // Step 1: File Upload & fetch headers preview (10 rows for display)
+  // Schritt 1: Datei hochladen und die ersten 10 Zeilen als Vorschau holen
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
@@ -40,13 +50,14 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({ project, onProjectUp
         const data = await api.parseTable(project.id, selectedFile, headerRowIndex, 10);
         setTableData(data);
         setStep(2);
-      } catch (err) {
+      } catch {
         alert('Fehler beim Auslesen der Datei.');
       }
     }
   };
 
-  // Step 2 & 3: Load Preview & Auto Suggest
+  // Schritt 2 & 3: Vorschau neu laden (falls die Überschriften-Zeile geändert wurde)
+  // und automatisch passende Zuordnungen vorschlagen (anhand der Spaltennamen)
   const handleLoadPreview = async () => {
     if (!file) return;
     try {
@@ -63,35 +74,36 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({ project, onProjectUp
         else if (lower.includes('geschlecht') || lower.includes('gender') || lower.includes('sex')) initialMap[h] = 'gender';
         else if (lower.includes('paar') || lower.includes('partner')) initialMap[h] = 'partnerid';
         else if (lower.includes('gruppe') || lower.includes('group') || lower.includes('klasse')) initialMap[h] = 'groupid';
+        else if (lower.includes('anmerkung') || lower.includes('besonder') || lower.includes('hinweis')) initialMap[h] = 'specialneeds';
         else initialMap[h] = 'IGNORE';
       });
       setColumnMapping(initialMap);
       setStep(4);
-    } catch (err) {
+    } catch {
       alert('Fehler beim Generieren der Vorschau.');
     }
   };
 
-  // Step 4: Validate Mapping on FULL file (reads ALL rows)
+  // Schritt 4: Zuordnung auf die KOMPLETTE Datei anwenden (alle Zeilen) und prüfen lassen
   const handleValidateMapping = async () => {
     if (!file) return;
     try {
       const result = await api.mapColumns(project.id, file, columnMapping, headerRowIndex);
       setValidationResult(result);
       setStep(5);
-    } catch (err) {
+    } catch {
       alert('Fehler bei der Spaltenzuordnung & Validierung.');
     }
   };
 
-  // Step 5: Execute Import into Project
+  // Schritt 5: Geprüfte Personen endgültig ins Projekt übernehmen
   const handleExecuteImport = async () => {
     if (!validationResult || validationResult.validPersons.length === 0) return;
     try {
       const updated = await api.savePersons(project.id, validationResult.validPersons);
       onProjectUpdate(updated);
       setStep(6);
-    } catch (err) {
+    } catch {
       alert('Fehler beim Importieren in das Projekt.');
     }
   };

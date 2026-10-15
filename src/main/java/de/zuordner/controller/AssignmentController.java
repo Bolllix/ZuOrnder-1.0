@@ -13,6 +13,18 @@ import org.springframework.web.bind.annotation.*;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 
+/**
+ * ============================================================================
+ * AssignmentController – Belegung berechnen und als Excel exportieren
+ * ============================================================================
+ * Endpunkte (alle unter /api/projects/{projectId}/assignment):
+ *   POST /calculate     -> Optimierung starten, Ergebnis im Projekt speichern
+ *   POST /override      -> Zuordnungen von Hand setzen (aktuell nicht im Frontend benutzt)
+ *   GET  /export/excel  -> Belegungsplan als .xlsx-Datei herunterladen
+ *
+ * {@code @CrossOrigin(origins = "*")}: Erlaubt Aufrufe auch von einer anderen
+ * Adresse (z.B. vom Vite-Entwicklungsserver auf Port 5173).
+ */
 @RestController
 @RequestMapping("/api/projects/{projectId}/assignment")
 @CrossOrigin(origins = "*")
@@ -26,6 +38,10 @@ public class AssignmentController {
         this.projectRepository = projectRepository;
     }
 
+    /**
+     * Berechnet die Belegung für das Projekt (siehe AssignmentService) und speichert
+     * das Ergebnis im Projekt, damit es nach einem Neustart noch da ist.
+     */
     @PostMapping("/calculate")
     public ResponseEntity<AssignmentResult> calculateAssignment(@PathVariable String projectId) {
         return projectRepository.getProjectById(projectId)
@@ -42,6 +58,10 @@ public class AssignmentController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Setzt Zuordnungen von Hand: Map aus Personen-ID -> Bett-ID
+     * (leere Bett-ID = Person aus ihrem Bett entfernen).
+     */
     @PostMapping("/override")
     public ResponseEntity<Project> manualOverride(
             @PathVariable String projectId,
@@ -74,6 +94,12 @@ public class AssignmentController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Erstellt eine Excel-Datei mit zwei Tabellenblättern:
+     *   1. "Zimmerbelegung": jedes Bett mit seiner Belegung (oder "FREIES BETT")
+     *   2. "Teilnehmerliste": jede Person mit Zimmer und Bett (oder Grund, warum nicht zugeordnet)
+     * Gibt es noch kein Ergebnis, wird die Belegung vorher berechnet.
+     */
     @GetMapping("/export/excel")
     public ResponseEntity<byte[]> exportExcel(@PathVariable String projectId) {
         Optional<Project> optProject = projectRepository.getProjectById(projectId);
@@ -86,10 +112,10 @@ public class AssignmentController {
         }
 
         try (XSSFWorkbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            // Sheet 1: Zimmerbelegung (Room Assignments)
+            // Tabellenblatt 1: Zimmerbelegung
             Sheet sheet1 = workbook.createSheet("Zimmerbelegung");
 
-            // Header Styling
+            // Aussehen der Überschriftenzeile: fett, weiße Schrift auf dunkelblauem Grund
             CellStyle headerStyle = workbook.createCellStyle();
             Font headerFont = workbook.createFont();
             headerFont.setBold(true);
@@ -107,7 +133,7 @@ public class AssignmentController {
                 cell.setCellStyle(headerStyle);
             }
 
-            // Map assignments to bed lookups
+            // Nachschlage-Tabellen ("Maps"), damit wir schnell finden, wer in welchem Bett liegt
             Map<String, AssignmentPair> bedAssignmentMap = new HashMap<>();
             for (AssignmentPair pair : result.getAssignments()) {
                 bedAssignmentMap.put(pair.getBedId(), pair);
@@ -136,7 +162,7 @@ public class AssignmentController {
                             row.createCell(6).setCellValue(p != null ? p.getAge() : 0);
                             row.createCell(7).setCellValue(p != null && p.getPartnerId() != null ? p.getPartnerId() : "");
                             row.createCell(8).setCellValue(p != null && p.getGroupId() != null ? p.getGroupId() : "");
-                            row.createCell(9).setCellValue("+" + pair.getScore() + " Pkt");
+                            row.createCell(9).setCellValue(formatScore(pair.getScore()));
                         } else {
                             row.createCell(4).setCellValue("-- FREIES BETT --");
                         }
@@ -148,10 +174,10 @@ public class AssignmentController {
                 sheet1.autoSizeColumn(i);
             }
 
-            // Sheet 2: Teilnehmerliste (All Participants)
+            // Tabellenblatt 2: Teilnehmerliste
             Sheet sheet2 = workbook.createSheet("Teilnehmerliste");
             Row headerRow2 = sheet2.createRow(0);
-            String[] headers2 = {"Vorname", "Nachname", "Geschlecht", "Alter", "Paar-ID", "Gruppe", "Zugewiesener Raum", "Zugewiesenes Bett"};
+            String[] headers2 = {"Vorname", "Nachname", "Geschlecht", "Alter", "Paar-ID", "Gruppe", "Zugewiesener Raum", "Zugewiesenes Bett", "Hinweis"};
             for (int i = 0; i < headers2.length; i++) {
                 Cell cell = headerRow2.createCell(i);
                 cell.setCellValue(headers2[i]);
@@ -180,6 +206,9 @@ public class AssignmentController {
                 } else {
                     row.createCell(6).setCellValue("NICHT ZUGEORDNET");
                     row.createCell(7).setCellValue("-");
+                    // Grund aus der Berechnung (z.B. "Alle Betten sind belegt")
+                    String reason = result.getUnassignedReasons() != null ? result.getUnassignedReasons().get(p.getId()) : null;
+                    row.createCell(8).setCellValue(reason != null ? reason : "");
                 }
             }
 
@@ -187,9 +216,11 @@ public class AssignmentController {
                 sheet2.autoSizeColumn(i);
             }
 
+            // Arbeitsmappe in den Speicher schreiben und als Download zurückgeben
             workbook.write(out);
             byte[] bytes = out.toByteArray();
 
+            // Sonderzeichen im Dateinamen durch "_" ersetzen (z.B. Leerzeichen, Umlaute)
             String fileName = "Belegungsplan_" + project.getName().replaceAll("[^a-zA-Z0-9_-]", "_") + ".xlsx";
 
             return ResponseEntity.ok()
@@ -201,5 +232,10 @@ public class AssignmentController {
             e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    /** Punkte mit Vorzeichen für die Excel-Datei: 50 -> "+50 Pkt", -25 -> "-25 Pkt". */
+    private static String formatScore(int score) {
+        return (score > 0 ? "+" : "") + score + " Pkt";
     }
 }

@@ -3,6 +3,11 @@ package de.zuordner.importengine;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Beschreibung einer Spaltenzuordnung (welche Spalte -> welche Eigenschaft).
+ * Hinweis: Wird aktuell vom Frontend nicht benutzt – der ImportController
+ * nimmt die Zuordnung direkt als JSON-Text bzw. als TableMappingRequest entgegen.
+ */
 public class ColumnMappingRequest {
     private String sheetName;
     private int headerRowIndex = 0; // 0-based

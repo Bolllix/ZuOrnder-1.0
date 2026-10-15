@@ -1,8 +1,16 @@
 package de.zuordner.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Eine einzelne Zuordnung im Ergebnis: Person -> Bett, mit Punkten und
+ * Begründungen. Namen von Person, Bett, Raum und Gebäude sind zusätzlich
+ * gespeichert, damit das Dashboard sie direkt anzeigen kann.
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AssignmentPair {
     private String personId;
     private String bedId;
@@ -12,6 +20,7 @@ public class AssignmentPair {
     private String buildingName;
     private int score;
     private List<ScoreExplanation> explanations;
+    /** true = von Hand gesetzt (nicht vom Optimierer) */
     private boolean manualOverride;
 
     public AssignmentPair() {

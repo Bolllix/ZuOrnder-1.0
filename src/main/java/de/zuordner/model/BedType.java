@@ -1,5 +1,10 @@
 package de.zuordner.model;
 
+/**
+ * Die möglichen Bettarten. Der Text in Klammern ist der deutsche Anzeigename.
+ * Achtung: Im Frontend müssen die Werte genau so geschrieben werden
+ * (z.B. "SOFA", nicht "SOFA_BED"), sonst kann der Server sie nicht einlesen.
+ */
 public enum BedType {
     SINGLE("Einzelbett"),
     DOUBLE("Doppelbett"),

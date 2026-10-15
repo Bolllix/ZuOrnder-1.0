@@ -1,4 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ============================================================================
+  pom.xml – die "Bauanleitung" für das Java-Backend (Maven)
+  ============================================================================
+  Maven liest diese Datei und weiß dann:
+    * wie das Projekt heißt und welche Versionsnummer es hat,
+    * welche fremden Bibliotheken (Dependencies) heruntergeladen werden müssen,
+    * wie daraus am Ende eine startbare JAR-Datei gebaut wird.
+
+  WICHTIG – Versionsnummer:
+  Die Versionsnummer steht NUR HIER in <version>. Beim Bauen schreibt Maven sie
+  automatisch in src/main/resources/application.properties, und das Programm
+  zeigt sie von dort oben rechts in der App an. Bei einer neuen Version also
+  nur hier UND in desktop-app/version.json (für das Update-System) ändern.
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -6,10 +21,12 @@
 
     <groupId>de.zuordner</groupId>
     <artifactId>zuordner-backend</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <!-- Aktuelle Programmversion (Major.Minor.Patch) -->
+    <version>2.1.0</version>
     <name>ZuORDNER Backend</name>
     <description>Webanwendung zur automatisierten Zimmer- und Bettenzuordnung</description>
 
+    <!-- Spring Boot bringt viele fertige Grundeinstellungen mit, die wir hier "erben" -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -18,6 +35,7 @@
     </parent>
 
     <properties>
+        <!-- Der erzeugte Code läuft ab Java 17 (also auch auf Java 21, 25, ...) -->
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <poi.version>5.2.5</poi.version>
@@ -25,13 +43,13 @@
     </properties>
 
     <dependencies>
-        <!-- Spring Boot Web -->
+        <!-- Spring Boot Web: eingebauter Webserver + REST-Schnittstellen (/api/...) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- Apache POI für Excel Import (.xlsx / .xls) -->
+        <!-- Apache POI für Excel Import/Export (.xlsx / .xls) -->
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>
@@ -50,7 +68,7 @@
             <version>${opencsv.version}</version>
         </dependency>
 
-        <!-- Spring Boot Starter Test (JUnit 5, AssertJ, Mockito) -->
+        <!-- Nur für automatische Tests (JUnit 5, AssertJ, Mockito) – landet nicht in der fertigen App -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -59,7 +77,14 @@
     </dependencies>
 
     <build>
+        <!--
+          Fester Dateiname für die fertige JAR: target/zuordner-app.jar
+          (unabhängig von der Versionsnummer – so muss build_windows_app.bat
+          bei einer neuen Version nicht angepasst werden).
+        -->
+        <finalName>zuordner-app</finalName>
         <plugins>
+            <!-- Packt alles (eigener Code + Bibliotheken + Webseite) in EINE startbare JAR -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

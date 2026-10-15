@@ -1,25 +1,38 @@
+// ============================================================================
+// AssignmentDashboard – Belegung berechnen und anzeigen (Reiter "Belegungs-Optimierung")
+// ============================================================================
+// - Knopf "Belegung berechnen" schickt die Anfrage an den Server
+//   (POST /api/projects/{id}/assignment/calculate).
+// - Danach werden alle Gebäude, Räume und Betten mit ihrer Belegung gezeigt.
+// - Klick auf ein belegtes Bett öffnet die Begründung (welche Regeln Punkte gaben).
+// - Personen ohne Bett werden mit dem Grund aufgelistet.
 import React, { useState } from 'react';
-import type { Project, AssignmentResult, AssignmentPair } from '../types';
+import type { Project, Person, AssignmentResult, AssignmentPair } from '../types';
 import { api } from '../services/api';
-import { Sparkles, Bed as BedIcon, Info, RefreshCw, Download } from 'lucide-react';
+import { Sparkles, Bed as BedIcon, Info, RefreshCw, Download, UserX } from 'lucide-react';
 
 interface AssignmentDashboardProps {
   project: Project;
   onProjectUpdate: (updated: Project) => void;
 }
 
+/** Punkte mit Vorzeichen anzeigen: 50 -> "+50", -25 -> "-25", 0 -> "0" */
+const formatPoints = (points: number) => (points > 0 ? `+${points}` : `${points}`);
+
 export const AssignmentDashboard: React.FC<AssignmentDashboardProps> = ({ project, onProjectUpdate }) => {
   const [isCalculating, setIsCalculating] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  // Das angeklickte Bett (für das Begründungs-Fenster); null = Fenster zu
   const [selectedPair, setSelectedPair] = useState<AssignmentPair | null>(null);
 
+  /** Berechnung auf dem Server starten und das Ergebnis ins Projekt übernehmen. */
   const handleRunOptimization = async () => {
     setIsCalculating(true);
     try {
       const result = await api.calculateAssignment(project.id);
       const updatedProject = { ...project, assignmentResult: result };
       onProjectUpdate(updatedProject);
-    } catch (e) {
+    } catch {
       alert('Fehler beim Berechnen der Belegung.');
     } finally {
       setIsCalculating(false);
@@ -30,7 +43,7 @@ export const AssignmentDashboard: React.FC<AssignmentDashboardProps> = ({ projec
     setIsExporting(true);
     try {
       await api.exportExcel(project.id, project.name);
-    } catch (e) {
+    } catch {
       alert('Fehler beim Exportieren der Excel-Datei.');
     } finally {
       setIsExporting(false);
@@ -39,16 +52,26 @@ export const AssignmentDashboard: React.FC<AssignmentDashboardProps> = ({ projec
 
   const result: AssignmentResult | undefined = project.assignmentResult;
 
+  // Personen ohne Bett (mit Namen statt nur IDs), für die Liste unten.
+  // Personen, die inzwischen gelöscht wurden, werden übersprungen.
+  const unassignedPersons: Array<{ person: Person; reason?: string }> = [];
+  for (const id of result?.unassignedPersonIds ?? []) {
+    const person = project.persons.find((p) => p.id === id);
+    if (person) {
+      unassignedPersons.push({ person, reason: result?.unassignedReasons?.[id] });
+    }
+  }
+
   return (
     <div className="space-y-6">
-      {/* Action Header */}
+      {/* Kopfbereich mit den Aktions-Knöpfen */}
       <div className="glass-panel p-6 rounded-2xl border border-indigo-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
             <Sparkles className="w-7 h-7 text-indigo-400" /> Zimmer- & Bettenbelegungsplan
           </h2>
           <p className="text-slate-400 text-sm mt-1">
-            Optimale Zuordnung berechnen mittels Ungarischem Algorithmus (Hungarian Solver).
+            Optimale Zuordnung: Ungarischer Algorithmus als Start, danach Verbesserung unter Berücksichtigung von Paaren, Gruppen und Geschlechtertrennung.
           </p>
         </div>
 
@@ -73,17 +96,19 @@ export const AssignmentDashboard: React.FC<AssignmentDashboardProps> = ({ projec
         </div>
       </div>
 
-      {/* Results Summary Stats Banner */}
+      {/* Kennzahlen */}
       {result && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <div className="glass-panel p-4 rounded-xl border border-emerald-500/30">
             <div className="text-xs text-slate-400 font-medium">Gesamt-Score</div>
-            <div className="text-2xl font-bold text-emerald-400 mt-1 font-mono">+{result.totalScore} Pkt</div>
+            <div className={`text-2xl font-bold mt-1 font-mono ${result.totalScore >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+              {formatPoints(result.totalScore)} Pkt
+            </div>
           </div>
 
           <div className="glass-panel p-4 rounded-xl border border-slate-700">
             <div className="text-xs text-slate-400 font-medium">Zugeordnete Personen</div>
-            <div className="text-2xl font-bold text-slate-100 mt-1 font-mono">
+            <div className={`text-2xl font-bold mt-1 font-mono ${unassignedPersons.length > 0 ? 'text-amber-300' : 'text-slate-100'}`}>
               {result.assignments.length} / {project.persons.length}
             </div>
           </div>
@@ -102,7 +127,29 @@ export const AssignmentDashboard: React.FC<AssignmentDashboardProps> = ({ projec
         </div>
       )}
 
-      {/* Room Occupancy Grid */}
+      {/* Personen ohne Bett, jeweils mit Grund */}
+      {result && unassignedPersons.length > 0 && (
+        <div className="glass-panel p-5 rounded-2xl border border-amber-500/40 space-y-3">
+          <h3 className="text-sm font-bold text-amber-300 flex items-center gap-2">
+            <UserX className="w-4 h-4" /> {unassignedPersons.length} Person(en) ohne Bett
+          </h3>
+          <p className="text-xs text-slate-400">
+            Harte Regeln werden nie gebrochen – lieber bleibt eine Person ohne Bett. Lösung: weitere Betten/Räume anlegen oder eine Regel ausschalten.
+          </p>
+          <ul className="space-y-1.5">
+            {unassignedPersons.map(({ person, reason }) => (
+              <li key={person.id} className="text-xs p-2.5 rounded-lg bg-slate-900/70 border border-slate-800">
+                <span className="font-semibold text-slate-100">
+                  {person.firstname} {person.lastname}
+                </span>
+                <span className="text-slate-400"> – {reason || 'Kein passendes freies Bett gefunden.'}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Zimmerübersicht */}
       {!result || result.assignments.length === 0 ? (
         <div className="glass-panel p-12 rounded-2xl text-center space-y-3 border border-slate-800">
           <Sparkles className="w-12 h-12 text-slate-600 mx-auto" />
@@ -126,9 +173,10 @@ export const AssignmentDashboard: React.FC<AssignmentDashboardProps> = ({ projec
                         <span className="ml-2 text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400">Etage {room.floor}</span>
                       </div>
                       {room.girlsRoom && <span className="text-xs text-pink-300 font-semibold">Mädchenzimmer</span>}
+                      {room.boysRoom && <span className="text-xs text-blue-300 font-semibold">Jungenzimmer</span>}
                     </div>
 
-                    {/* Beds in Room */}
+                    {/* Betten im Raum: belegt (mit Name und Punkten) oder frei */}
                     <div className="space-y-2">
                       {room.beds.map((bed) => {
                         const pair = result.assignments.find((a) => a.bedId === bed.id);
@@ -156,8 +204,14 @@ export const AssignmentDashboard: React.FC<AssignmentDashboardProps> = ({ projec
 
                             {pair && (
                               <div className="flex items-center space-x-2">
-                                <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                                  +{pair.score} Pkt
+                                <span
+                                  className={`text-xs font-mono font-bold px-2 py-0.5 rounded-full border ${
+                                    pair.score >= 0
+                                      ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+                                      : 'text-rose-400 bg-rose-500/10 border-rose-500/20'
+                                  }`}
+                                >
+                                  {formatPoints(pair.score)} Pkt
                                 </span>
                                 <Info className="w-4 h-4 text-slate-400 hover:text-slate-200" />
                               </div>
@@ -174,7 +228,7 @@ export const AssignmentDashboard: React.FC<AssignmentDashboardProps> = ({ projec
         </div>
       )}
 
-      {/* Transparent Score Explanation Modal */}
+      {/* Fenster mit der Begründung für ein angeklicktes Bett */}
       {selectedPair && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="glass-panel p-6 rounded-2xl border border-indigo-500/40 max-w-lg w-full space-y-4 shadow-2xl">
@@ -186,11 +240,11 @@ export const AssignmentDashboard: React.FC<AssignmentDashboardProps> = ({ projec
                 </p>
               </div>
               <span className="text-sm font-bold font-mono text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/30">
-                Score: +{selectedPair.score} Pkt
+                Score: {formatPoints(selectedPair.score)} Pkt
               </span>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
               <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Erfüllte Regeln & Begründung</h4>
               {selectedPair.explanations.length === 0 ? (
                 <p className="text-xs text-slate-400 italic">Standardzuordnung (keine spezifischen Punkteboni/Strafen).</p>
@@ -202,7 +256,7 @@ export const AssignmentDashboard: React.FC<AssignmentDashboardProps> = ({ projec
                       <div className="text-xs text-slate-400">{exp.reason}</div>
                     </div>
                     <span className={`text-xs font-mono font-bold ${exp.points >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                      {exp.points >= 0 ? `+${exp.points}` : exp.points}
+                      {formatPoints(exp.points)}
                     </span>
                   </div>
                 ))
